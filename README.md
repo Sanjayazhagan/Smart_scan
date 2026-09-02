@@ -1,214 +1,111 @@
-# Smart Scan: Production Adaptive MoE & Track 2 RF System
+# Smart Scan
 
-Smart Scan is an advanced partial-observation radio frequency (RF) scheduler and world model.
-It couples deep neural RF perception (Track 2) with a high-performance **Adaptive Mixture of Experts (MoE)** and an **Asynchronous Planning Engine** designed for real-world software-defined radio (SDR) deployment.
+Smart Scan is a partially observable RF scan-scheduling prototype. A frozen
+Track 2 perception model converts one-band I/Q observations into emitter
+identity tracks, future-band belief, scan age, and uncertainty. Schedulers then
+choose one of 20 receiver bands.
 
-## Production Champions
+## Current model status
 
-- **Algorithmic Champion**: `AdaptiveMixtureOfExpertsScheduler` (**$20.39$ Overall Benchmark Reward** across all 4 operational regimes).
-- **Real-Time Deployment Champion**: `AsyncPlanningScheduler` (**$<0.005\text{ ms}$ Non-Blocking Latency**, Record **$-0.584$** in Harsh Noise with Reflex Pulse Confirmation).
+- **UCB-first Adaptive** is the single product-facing controller. Observable
+  discounted UCB makes the normal decision. It escalates to Adaptive MoE's
+  belief-tree specialist only after the observation history establishes a
+  sustained clean/stationary pattern.
+- **Observable Discounted UCB**, **Adaptive MoE**, and **MPP-60** remain
+  standalone benchmark components, not separate dashboard products.
+- **Standard UCB1** remains a simulator benchmark only: it updates from the
+  simulator reward, which is not available as ground truth on real hardware.
+- PPO, learned routing/value models, asynchronous planning, NMF, RPCA, and
+  other paradigms remain research comparisons. None is presented as the
+  production champion.
 
----
+Turbo-MoE was removed after it failed to demonstrate a reliable reward gain.
+There is currently no claim of industry superiority or real-hardware readiness.
 
-## System Architecture
+## Architecture
 
 ```text
-Raw I/Q [2, 512] 
-    │
-    ├──► Conv1D Identity Encoder (87.5% Purity Hardware Fingerprinting)
-    ├──► 2D CNN Spectrogram Model (Time-Frequency Energy Extraction)
-    └──► Per-Emitter Recurrent GRU (Persistent Latent World Model)
-              │
-              ▼
-    Observable 60-Dim State (Band Belief [20], Scan Age [20], Band Uncertainty [20])
-              │
-              ▼
-    Adaptive Mixture of Experts (MoE) Router
-       ├── CLEAN / STATIONARY  ──► History-Gated Belief Tree (37.57 Reward)
-       ├── STABLE / COMPLEX    ──► MPP-60 Beam Search (Depth-3 Lookahead)
-       ├── DYNAMIC / HOPPING   ──► Observation-Only Discounted UCB (22.72 Reward)
-       ├── SUSTAINED NOISE     ──► Pure Bayesian Tree Search (-3.83 vs -8.0 Baseline)
-       └── UNKNOWN / OOD       ──► Safe Prioritized Exploration
+I/Q observation [2, 512]
+  -> frozen identity CNN + spectrogram state encoder
+  -> per-emitter GRU and persistent TrackManager
+  -> observable belief[20] + scan age[20] + uncertainty[20]
+  -> Observable UCB primary path
+       -> sustained clean/stationary evidence? Adaptive belief tree : UCB
+  -> next receiver band
 ```
 
-The adaptive system is implemented in `scheduler/adaptive_moe.py`. Its UCB
-expert learns from detection quality and scan history, not simulator reward or
-hidden truth. The Track 2 behaviour-change score is retained as context but no
-longer triggers an expert switch by itself because seeded scenario tests found
-it unreliable as a standalone routing signal. An 80-scan observable history
-scores detection quality, low-quality alarms, repeated-band outcome changes,
-and credible-hit band concentration. Hysteresis prevents one unusual scan from
-flipping modes. Clean concentrated history favors the tree; sustained noisy
-history favors MPP-60. Neither selector reads the scenario name, reward, or
-hidden truth. PPO is not a default route: an unvalidated RL decision is
-possible only through explicit opt-in, and old learned-router `rl` labels
-safely fall back to the belief tree.
-Exploration probability starts near 0.5%, 1%, 3%, 0%, and 5% for easy,
-intermediate, complex, dynamic, and OOD states, then changes with uncertainty.
-Exploration is weighted toward stale, uncertain, novel, changing, and
-high-prediction-error bands rather than choosing uniformly at random.
+Simulator ground truth is confined to Gymnasium's `info` dictionary and offline
+metrics. It is not passed into Track 2 or Adaptive MoE.
 
-The model-predictive scheduler provides a training-free alternative. It uses
-depth-3 beam search to simulate candidate scan sequences from Track 2 belief,
-age, and uncertainty; scores expected simulator reward plus information value;
-executes only the first action; and replans after the real hit or miss.
+## External artifacts
 
-The observation-dependent tree uses a full root shortlist, a smaller deeper
-branch budget, and an exact terminal-layer shortcut. The shortcut does not
-change the final-layer choice because terminal HIT/MISS children have no future
-value. This reduced measured tree latency from about 303 ms to 42 ms while
-retaining contingent HIT/MISS branches.
+Keep weights and the I/Q dataset outside the source tree:
 
-`EmitterAwareModelPredictivePlanner` is an experimental ablation alongside the
-unchanged MPP-60. It converts confirmed masked `track_features [16,48]` into
-interpretable per-band quantities (dominant track probability, support count,
-and probability-weighted uncertainty, behaviour, novelty, recency, quality,
-and identity confidence). Anomalies contribute only when band belief and
-observation quality are meaningful. Every action saves an explainable score
-breakdown and top contributing runtime tracks.
+```text
+C:\Users\asus\Documents\SmartScanArtifacts\track2\track2_final_world_model.pt
+C:\Users\asus\Documents\SmartScanArtifacts\track2\track2_synthetic_rf_dataset.npz
+```
 
-`scan_age` is derived only from chosen actions. `band_uncertainty` combines each
-confirmed track's predicted band probability with its prediction uncertainty;
-where track evidence is absent, normalized scan recency supplies uncertainty.
-Never-scanned bands therefore start at high uncertainty. A recent observable
-miss lowers current belief/evidence for only that scanned band and then decays.
-
-Ground-truth emitter IDs and active bands stay in Gymnasium's `info` dictionary
-for evaluation. They are never part of the PPO observation or passed to
-`Track2Runtime`. The simulator uses an emitter ID internally only to choose an
-I/Q sample.
-
-## Scenario simulator v2
-
-The original simulator remains available as `--scenario legacy`. New scenario
-presets are `stationary`, `hopping`, `bursty`, `crowded`, `changing`, `harsh`,
-and `mixed`.
-
-For every non-legacy episode, the complete hidden emitter activity, band-hop,
-SNR, behaviour-change, and interference timeline is generated before the first
-scan. Hidden-world generation and step/band observations use independent random
-streams. Different schedulers therefore cannot change the future world merely
-by consuming random numbers in a different order.
-
-The new scenarios add variable SNR, fading, interference, sensor dropout, I/Q
-noise/imbalance/clipping, hopping, burst activity, behaviour changes, crowded
-bands, and optional tuning-distance cost. The observation schema remains
-unchanged, so Track 2 and all existing schedulers still receive only the chosen
-band's measurement. Extra truth appears only in evaluation `info`.
-
-## Setup and tests
+## Setup
 
 ```powershell
+cd "C:\Users\asus\Documents\SMART SCAN"
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 python -m pytest -q
 ```
 
-## Train policies
-
-Track 2 weights stay frozen; only PPO is trained:
+## Dashboard
 
 ```powershell
-python -m scheduler.emitter_rl --state-size 60 --timesteps 100000 --output models/track2_exploration_ppo
-# Rich masked emitter-attention expert (288 observable features):
-python -m scheduler.emitter_rl --state-size 288 --timesteps 100000 --output models/track2_attention_ppo
-# Optional 20-feature ablation (does not overwrite the existing saved policy):
-python -m scheduler.emitter_rl --state-size 20 --timesteps 100000 --output models/track2_belief_ppo_ablation
-python -m scheduler.frequency_rl --timesteps 100000 --output models/frequency_history_ppo
+.\.venv\Scripts\python.exe dashboard\server.py
 ```
 
-Train the optional cost-aware mixture gate and learned path-value estimator
-from seeded simulator outcomes:
+Open `http://localhost:8000`. The dashboard exposes only the UCB-first Adaptive
+controller. If the Python backend is unavailable, the page clearly labels
+itself as a client visual demo.
+
+## Core benchmark
+
+PPO policy files are no longer required when testing core schedulers:
 
 ```powershell
-python -m evaluation.adaptive_training --mode all `
-  --output-dir C:\Users\asus\Documents\SmartScanArtifacts\adaptive `
-  --seeds 42 142 242 342 442 `
-  --warmup-steps 5 20 50 `
-  --warmup-patterns sequential reverse random `
-  --router-rollout-horizon 40
-```
-
-This trains only the router/value/PPO scheduling components. It never modifies
-the frozen Track 2 CNN/GRU weights.
-
-## Benchmark all schedulers
-
-```powershell
-python -m evaluation.benchmark --frequency-policy models/frequency_history_ppo.zip --track2-policy models/track2_belief_ppo.zip --track2-exploration-policy models/track2_exploration_ppo.zip --router-model C:\Users\asus\Documents\SmartScanArtifacts\adaptive_v2\router_gate.npz --path-value-model C:\Users\asus\Documents\SmartScanArtifacts\adaptive\path_value_model.npz --episodes 20 --episode-length 200
-```
-
-Multiple benchmark seeds are supported with, for example, `--seeds 42 142 242`.
-The report includes reward mean/std/median, hits, false positives, misses,
-detection/interception rates, wasted scans, unique-band coverage, revisit time,
-planning latency, and emitter discovery delay. It also includes MPP-BeliefOnly,
-MPP-60, full MPP-EmitterAware, and both required term-removal ablations.
-
-See `BENCHMARK_RESULTS.md` for the controlled seed-42 results and the current
-go/no-go interpretation.
-
-### 4-Scenario Benchmark Scoreboard (Held-Out Seeds 12001, 12011, 12021)
-
-| Scenario | UCB Baseline | Generalist PPO | **Adaptive MoE (Sync Champion)** | **Async Planning Worker (Real-Time Driver)** |
-|---|:---:|:---:|:---:|:---:|
-| **Stationary** | $25.05$ | $17.80$ | **$37.57$** 🏆 | $32.02$ |
-| **Hopping** | $23.05$ | $19.32$ | **$22.22$** | **$15.3$ hits / 86.5% Det** ⚡ |
-| **Changing** | $24.20$ | $17.38$ | **$25.12$** 🏆 | $15.04$ |
-| **Harsh Noise** | $-2.74$ | $-2.79$ | $-3.83$ | **$-0.584$** 🏆 *(All-Time Record)* |
-| **Overall Score** | $17.39$ | $12.93$ | **$20.39$** 🏆 *(Champion)* | High-Throughput Real-Time Driver |
-| **Planning Latency** | $0.01\text{ ms}$ | $1.10\text{ ms}$ | $25.0\text{ ms}$ | **$<0.005\text{ ms}$** ⚡ |
-
-
-Run several realistic scenario families in one command:
-
-```powershell
-python -m evaluation.benchmark `
-  --frequency-policy models\frequency_history_ppo.zip `
-  --track2-policy models\track2_belief_ppo.zip `
-  --episodes 3 --episode-length 200 `
-  --seeds 8001 8011 8021 `
-  --scenarios stationary hopping bursty crowded changing harsh mixed `
-  --only "UCB" "MPP-60" "MPP-ObservationDependent Tree" "Adaptive MoE rule router" `
-  --output scenario_matrix.json
-```
-
-To calibrate from a few scans before the actual test, add `--warmup-steps 80`.
-This performs four fixed sequential sweeps over the 20 bands. The scheduler and
-environment continue from that state, but the warm-up is excluded from
-`mean_reward` and all main test metrics:
-
-```powershell
-python -m evaluation.benchmark `
-  --frequency-policy models\frequency_history_ppo.zip `
-  --track2-policy models\track2_belief_ppo.zip `
+.\.venv\Scripts\python.exe -m evaluation.benchmark `
   --warmup-steps 80 --episode-length 200 --episodes 2 `
   --seeds 12001 12011 12021 `
   --scenarios stationary hopping changing harsh `
-  --only "UCB" "MPP-60" "MPP-ObservationDependent Tree" "Adaptive MoE rule router" `
-  --output warmup_heldout_validation.json
+  --only "Observable Discounted UCB" "UCB-first Adaptive" `
+  --output results\current_validation.json
 ```
 
-`mean_warmup_reward` reports calibration separately, while `mean_reward`
-reports only the 200 actual decisions. The adaptive trace also reports the
-calibration evidence and score, whether a noisy-MPP lock was selected, and the
-scored-phase expert ratios. Warm-up is useful evidence, not an oracle: a short
-changing sample can look noisy and a harsh sample can temporarily look clean.
+The benchmark reports selection time, scheduler update time, full control time,
+reward, detections, false positives, misses, coverage, switching, discovery,
+and routing ratios. Use multiple untouched seeds; a single favorable episode is
+not evidence that one scheduler is universally better.
 
-Diagnose Track 2 directly, independently of scheduler reward:
+## Evidence retained in the repository
 
-```powershell
-python -m evaluation.track2_diagnostic `
-  --scenarios stationary hopping changing harsh `
-  --seeds 12001 12011 12021 `
-  --warmup-steps 80 --scored-steps 200 `
-  --output track2_heldout_diagnostic.json
-```
+- `ucb_first_stationary_gate_validation.json`: fresh-seed paired validation of
+  UCB-first Adaptive against standalone Observable Discounted UCB. Across seven
+  scenarios it scored 19.198 versus 18.055 (+6.3%); the gain was concentrated
+  in stationary and bursty worlds and is not evidence of universal superiority.
 
-This uses a fixed sequential scan order and scores Track 2 belief calibration,
-GRU next-band forecasts, and identity-track consistency. Simulator truth is
-used only for offline measurement and is never passed to Track 2.
+- `results/warmup_heldout_validation.json`: held-out warm-up evaluation.
+- `results/track2_heldout_diagnostic.json`: scheduler-independent Track 2
+  diagnostic.
+- `results/grand_benchmark_results.json`: comparative paradigm snapshot.
+- `BENCHMARK_RESULTS.md`: current interpretation and limitations.
+- `MODEL_DESCRIPTIONS.md`: implementation-level model descriptions.
 
-Scenario reports additionally include effective SNR, switch rate/distance,
-switching cost, sensor dropout, observed interference, and behaviour-change
-adaptation delay where a changed emitter is later intercepted.
+## Known gaps
+
+- No SDR or over-the-air validation.
+- The simulator does not yet model every deceptive/jamming waveform.
+- MPP deeper steps approximate future belief instead of rolling the GRU through
+  genuine future I/Q.
+- Track 2 identity and next-band prediction require broader held-out hardware
+  data.
+- The fresh validation improvement is not statistically conclusive: the paired
+  95% interval crosses zero, and planning latency averaged 7.05 ms versus
+  2.33 ms for standalone Observable UCB.

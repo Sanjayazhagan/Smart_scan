@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Non-Negative Matrix Factorization (NMF)",
+    "mean_reward": 17.0,
+    "std_reward": 9.4,
+    "hit_rate_pct": 16.3,
+    "total_hits": 16,
+    "latency_ms": 0.014
+  },
+  {
+    "name": "Robust PCA + PSR",
+    "mean_reward": 11.9,
+    "std_reward": 6.9,
+    "hit_rate_pct": 12.7,
+    "total_hits": 12,
+    "latency_ms": 0.018
+  },
+  {
+    "name": "Bayesian Thompson Sampling",
+    "mean_reward": 11.7,
+    "std_reward": 6.1,
+    "hit_rate_pct": 12.0,
+    "total_hits": 12,
+    "latency_ms": 0.019
+  },
+  {
+    "name": "Double DQN",
+    "mean_reward": 9.6,
+    "std_reward": 9.9,
+    "hit_rate_pct": 8.7,
+    "total_hits": 8,
+    "latency_ms": 0.114
+  },
+  {
+    "name": "Whittle Index RMAB",
+    "mean_reward": 8.9,
+    "std_reward": 5.7,
+    "hit_rate_pct": 10.3,
+    "total_hits": 10,
+    "latency_ms": 0.024
+  },
+  {
+    "name": "Adaptive MoE (Champion)",
+    "mean_reward": 8.5,
+    "std_reward": 2.5,
+    "hit_rate_pct": 12.0,
+    "total_hits": 12,
+    "latency_ms": 9.246
+  },
+  {
+    "name": "Adaptive Receiver Search (PRI)",
+    "mean_reward": 6.9,
+    "std_reward": 0.8,
+    "hit_rate_pct": 9.7,
+    "total_hits": 9,
+    "latency_ms": 0.021
+  },
+  {
+    "name": "Adversarial Exp3 Bandit",
+    "mean_reward": 4.3,
+    "std_reward": 1.0,
+    "hit_rate_pct": 5.3,
+    "total_hits": 5,
+    "latency_ms": 0.017
+  }
+]

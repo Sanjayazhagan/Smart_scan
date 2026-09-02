@@ -1,8 +1,9 @@
-"""Production schedulers for Smart Scan.
+"""Active schedulers for the Smart Scan research prototype.
 
-Primary deployment drivers:
-- AdaptiveMixtureOfExpertsScheduler: Champion synchronous multi-regime scheduler.
-- AsyncPlanningScheduler: Real-time non-blocking SDR driver with reflex interrupt.
+Primary interfaces:
+- AdaptiveMixtureOfExpertsScheduler: synchronous observable multi-regime router.
+- UCBFirstAdaptiveScheduler: product controller; UCB default, adaptive escalation.
+- AsyncPlanningScheduler: experimental background-planning wrapper.
 - Track2Runtime: Perceptual world model with Conv1D fingerprinting and recurrent GRU.
 """
 
@@ -11,6 +12,7 @@ from scheduler.async_worker import AsyncPlanningScheduler
 from scheduler.belief_tree import ObservationDependentBeliefTreePlanner
 from scheduler.emitter_aware_predictive import EmitterAwareModelPredictivePlanner
 from scheduler.track2_runtime import Track2Runtime
+from scheduler.ucb_first_adaptive import UCBFirstAdaptiveScheduler
 
 __all__ = [
     "AdaptiveMixtureOfExpertsScheduler",
@@ -18,5 +20,5 @@ __all__ = [
     "ObservationDependentBeliefTreePlanner",
     "EmitterAwareModelPredictivePlanner",
     "Track2Runtime",
+    "UCBFirstAdaptiveScheduler",
 ]
-

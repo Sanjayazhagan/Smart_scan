@@ -745,12 +745,15 @@ class ObservableDiscountedUCBScheduler(BaseScheduler):
         decay: float = 0.985,
         value_learning_rate: float = 0.20,
         exploration_scale: float = 0.75,
+        manage_runtime: bool = False,
     ):
         super().__init__(num_bands)
         self.runtime = runtime
         self.decay = float(decay)
         self.value_learning_rate = float(value_learning_rate)
         self.exploration_scale = float(exploration_scale)
+        self.manage_runtime = bool(manage_runtime)
+        self.timestamp = 0.0
         self.counts = np.zeros(num_bands, dtype=np.float64)
         self.values = np.zeros(num_bands, dtype=np.float64)
         self.total_observations = 0.0
@@ -787,6 +790,9 @@ class ObservableDiscountedUCBScheduler(BaseScheduler):
         return band
 
     def update(self, band: int, reward: float, obs_dict: dict | None = None):
+        if self.manage_runtime and obs_dict is not None:
+            self.runtime.update(obs_dict, timestamp=self.timestamp)
+        self.timestamp += 1.0
         self.counts *= self.decay
         self.total_observations = self.total_observations * self.decay + 1.0
         self.counts[int(band)] += 1.0

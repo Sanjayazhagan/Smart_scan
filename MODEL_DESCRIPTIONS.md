@@ -71,7 +71,17 @@ simulator for historical comparisons.
 
 ## Scheduling approaches
 
-- `scheduler/baselines.py`: sequential, random, UCB, and Thompson Sampling.
+- `scheduler/ucb_first_adaptive.py`: the sole product-facing controller.
+  Observable discounted UCB is always warm and handles the ordinary path.
+  Only sustained clean/stationary evidence from the 80-scan observation
+  monitor enables the Adaptive MoE belief-tree specialist. Earlier broad
+  complexity/noise escalation was rejected because held-out ablation made it
+  slower and slightly worse overall. Routing never uses scenario labels,
+  simulator reward, or hidden emitter truth.
+
+- `scheduler/baselines.py`: sequential, random, standard UCB1, and Thompson
+  Sampling. Standard UCB1 updates from simulator reward and is an offline
+  benchmark baseline, not a deployable truth-free controller.
 - `scheduler/frequency_rl.py`: PPO using per-band scan history.
 - `scheduler/emitter_rl.py`: preserved 20-feature Track 2 PPO and the newer
   60-feature belief/age/uncertainty PPO.
@@ -96,6 +106,9 @@ simulator for historical comparisons.
   PPO is opt-in only; OOD rules override learned routing. An optional unscored
   four-sweep calibration phase can lock only a high-confidence noisy sample to
   MPP-60; ambiguous samples continue through the online router.
+  `ObservableDiscountedUCBScheduler` can also run standalone with
+  `manage_runtime=True`; in that mode it advances Track 2 itself while still
+  ignoring simulator reward.
 - `scheduler/emitter_attention.py`: masked attention pooling of variable
   per-emitter rows into a fixed 288-feature RL state.
 - `scheduler/learned_value.py`: small trainable path-value network that can
@@ -120,3 +133,7 @@ interface smoke test and is not a competitive policy. The learned value model
 also remains a prototype. The v2 learned router is substantially better
 balanced than v1 but loses reward and discovery to the rule router on held-out
 seeds, so it remains an optional speed-oriented experiment.
+
+The active dashboard intentionally exposes only UCB-first Adaptive. Standalone
+Observable Discounted UCB, Adaptive MoE, MPP-60, and all other schedulers remain
+benchmark/research components rather than separate advertised products.

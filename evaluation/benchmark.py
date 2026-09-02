@@ -42,6 +42,7 @@ def evaluate_policy(
     episode_unique_bands = []
     all_revisit_intervals = []
     all_planning_times = []
+    all_update_times = []
     all_discovery_delays = []
     all_behaviour_change_delays = []
     all_effective_snr_db = []
@@ -72,6 +73,8 @@ def evaluate_policy(
         "ucb": 0,
         "rl": 0,
         "safe": 0,
+        "nmf": 0,
+        "rpca": 0,
     }
     dynamic_signal_counts = {
         "prediction_error": 0,
@@ -94,6 +97,7 @@ def evaluate_policy(
         "uncertain": 0,
         "clean_stationary": 0,
         "noisy": 0,
+        "agile_hopping": 0,
     }
 
     for episode in range(episodes):
@@ -204,7 +208,9 @@ def evaluate_policy(
                 == "exploratory_alternative"
             )
             next_obs, reward, terminated, truncated, info = env.step(action)
+            update_started = perf_counter()
             scheduler.update(action, reward, next_obs)
+            all_update_times.append(perf_counter() - update_started)
 
             actions.append(action)
             if action in last_scan_step:
@@ -324,6 +330,10 @@ def evaluate_policy(
         if all_revisit_intervals
         else 0.0,
         "average_planning_time_ms": float(np.mean(all_planning_times) * 1000.0),
+        "average_update_time_ms": float(np.mean(all_update_times) * 1000.0),
+        "average_control_time_ms": float(
+            (np.mean(all_planning_times) + np.mean(all_update_times)) * 1000.0
+        ),
         "mean_new_emitter_discovery_delay": float(np.mean(all_discovery_delays))
         if all_discovery_delays
         else 0.0,
@@ -369,6 +379,8 @@ def evaluate_policy(
         "ucb_expert_ratio": _safe_ratio(expert_counts["ucb"], total_steps),
         "rl_expert_ratio": _safe_ratio(expert_counts["rl"], total_steps),
         "safe_expert_ratio": _safe_ratio(expert_counts["safe"], total_steps),
+        "nmf_expert_ratio": _safe_ratio(expert_counts["nmf"], total_steps),
+        "rpca_expert_ratio": _safe_ratio(expert_counts["rpca"], total_steps),
         "prediction_error_signal_ratio": _safe_ratio(
             dynamic_signal_counts["prediction_error"], total_steps
         ),
@@ -404,6 +416,9 @@ def evaluate_policy(
         ),
         "history_noisy_ratio": _safe_ratio(
             history_regime_counts["noisy"], total_steps
+        ),
+        "history_agile_hopping_ratio": _safe_ratio(
+            history_regime_counts["agile_hopping"], total_steps
         ),
         "history_clean_stationary_score": _safe_ratio(
             monitor_metric_sums["clean_stationary_score"], total_steps
@@ -466,9 +481,9 @@ def aggregate_seed_results(per_seed: dict) -> dict:
 
 
 def build_full_scheduler_suite(
-    frequency_policy_path,
-    track2_policy_path,
-    track2_model_path,
+    frequency_policy_path=None,
+    track2_policy_path=None,
+    track2_model_path=None,
     track2_exploration_policy_path=None,
     track2_attention_policy_path=None,
     router_model_path=None,
@@ -490,6 +505,14 @@ def build_full_scheduler_suite(
         LearnedRegimeRouter,
         ObservableDiscountedUCBScheduler,
     )
+    from scheduler.paradigms import (
+        RobustPCAPSRScheduler,
+        NMFScheduler,
+        WhittleIndexRMABScheduler,
+        Exp3BanditScheduler,
+        AdaptiveReceiverSearchScheduler,
+        DoubleDQNScheduler,
+    )
     from scheduler.async_worker import AsyncPlanningScheduler
     from scheduler.belief_tree import ObservationDependentBeliefTreePlanner
     from scheduler.emitter_aware_predictive import (
@@ -506,9 +529,23 @@ def build_full_scheduler_suite(
     from scheduler.learned_value import LearnedValueEmitterPlanner, SmallPathValueModel
     from scheduler.model_predictive import ModelPredictiveScheduler
     from scheduler.track2_runtime import Track2Runtime
+    from scheduler.ucb_first_adaptive import UCBFirstAdaptiveScheduler
 
-    frequency_model = PPO.load(str(frequency_policy_path))
-    track2_model = PPO.load(str(track2_policy_path))
+    if track2_model_path is None:
+        from scheduler.track2_runtime import DEFAULT_MODEL_PATH
+
+        track2_model_path = DEFAULT_MODEL_PATH
+
+    frequency_model = (
+        PPO.load(str(frequency_policy_path))
+        if frequency_policy_path is not None
+        else None
+    )
+    track2_model = (
+        PPO.load(str(track2_policy_path))
+        if track2_policy_path is not None
+        else None
+    )
     full_emitter_config = EmitterAwarePlannerConfig(
         exploration_probability=0.0, exploration_seed=seed
     )
@@ -543,13 +580,21 @@ def build_full_scheduler_suite(
         "Random": lambda n: RandomScheduler(n, seed=seed),
         "Thompson Sampling": lambda n: ThompsonSamplingScheduler(n, seed=seed),
         "UCB": lambda n: UCB1Scheduler(n),
+        "Double DQN": lambda n: DoubleDQNScheduler(n, seed=seed),
+        "Robust PCA + PSR": lambda n: RobustPCAPSRScheduler(n, seed=seed),
+        "Non-Negative Matrix Factorization": lambda n: NMFScheduler(n, seed=seed),
+        "Adaptive Receiver Search": lambda n: AdaptiveReceiverSearchScheduler(n, seed=seed),
+        "Whittle Index RMAB": lambda n: WhittleIndexRMABScheduler(n, seed=seed),
+        "Adversarial Exp3 Bandit": lambda n: Exp3BanditScheduler(n, seed=seed),
         "Observable Discounted UCB": lambda n: ObservableDiscountedUCBScheduler(
             n,
             Track2Runtime(track2_model_path, max_scan_age=max_scan_age),
+            manage_runtime=True,
         ),
-        "Frequency-History PPO": lambda n: RLScheduler(n, frequency_model),
-        "Track2 PPO[20]": lambda n: BeliefRLScheduler(
-            n, track2_model, model_path=track2_model_path
+        "UCB-first Adaptive": lambda n: UCBFirstAdaptiveScheduler(
+            n,
+            model_path=track2_model_path,
+            max_scan_age=max_scan_age,
         ),
         "MPP-BeliefOnly": lambda n: BeliefOnlyModelPredictiveScheduler(
             n, model_path=track2_model_path, max_scan_age=max_scan_age
@@ -603,6 +648,14 @@ def build_full_scheduler_suite(
             ),
         ),
     }
+    if frequency_model is not None:
+        schedulers["Frequency-History PPO"] = lambda n: RLScheduler(
+            n, frequency_model
+        )
+    if track2_model is not None:
+        schedulers["Track2 PPO[20]"] = lambda n: BeliefRLScheduler(
+            n, track2_model, model_path=track2_model_path
+        )
     if track2_exploration_model is not None:
         schedulers["Track2 PPO[60]"] = lambda n: ExplorationBeliefRLScheduler(
             n,
@@ -654,8 +707,8 @@ def _main():
     from simulator.scenarios import scenario_names
 
     parser = argparse.ArgumentParser(description="Benchmark all Smart Scan schedulers")
-    parser.add_argument("--frequency-policy", required=True)
-    parser.add_argument("--track2-policy", required=True)
+    parser.add_argument("--frequency-policy")
+    parser.add_argument("--track2-policy")
     parser.add_argument("--track2-exploration-policy")
     parser.add_argument("--track2-attention-policy")
     parser.add_argument("--router-model")

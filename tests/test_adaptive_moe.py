@@ -217,6 +217,18 @@ def test_observable_ucb_does_not_learn_from_simulator_reward():
     assert np.allclose(ucb1.values, ucb2.values)
 
 
+def test_standalone_observable_ucb_can_manage_track2_runtime():
+    runtime = FakeRuntime()
+    scheduler = ObservableDiscountedUCBScheduler(
+        20, runtime, manage_runtime=True
+    )
+    observation = {"detected": 0, "quality": np.array([0.0], dtype=np.float32)}
+
+    scheduler.update(2, reward=999.0, obs_dict=observation)
+
+    assert runtime.updates == [(observation, 0.0)]
+
+
 def test_history_monitor_separates_clean_stationary_and_noisy_observations():
     clean = ObservableRegimeMonitor(20)
     noisy = ObservableRegimeMonitor(20)

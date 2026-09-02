@@ -8,26 +8,27 @@ This directory preserves standalone experimental schedulers, model-free reinforc
 
 | Module | Description | Key Finding / Outcome |
 |---|---|---|
-| `experiments/emitter_rl.py` | Track 2 PPO Reinforcement Learning models (20-dim, 60-dim, diverse anti-camping, generalist curriculum). | Solved initial policy collapse ($6.25 \to 30.85$ stationary). However, pure feedforward PPO lacks multi-step forward lookahead, scoring $12.93$ overall versus Adaptive MoE's $20.39$. |
+| `experiments/emitter_rl.py` | Track 2 PPO Reinforcement Learning models (20-dim, 60-dim, diverse anti-camping, generalist curriculum). | Solved an early policy-collapse issue, but remained seed-sensitive and below the active rule router in the retained held-out evaluation. |
 | `experiments/frequency_rl.py` | Track 1 classical frequency-history RL baseline. | Operates on scalar power observations only; strictly inferior to RF-aware world models. |
 | `experiments/emitter_attention.py` | Variable-emitter masked attention pooling into a fixed 288-dim state vector. | Interface prototype; high dimensionality increased policy variance. |
 | `experiments/learned_value.py` | Trainable small path-value network intended to replace hand-designed search heuristic. | Scored lower than domain-informed heuristic rollouts on held-out seeds. |
 
 ---
 
-## 2. Archived Checkpoints (`archive/models/`)
+## 2. Checkpoints
 
-- `frequency_history_ppo.zip`: Original Track 1 frequency baseline.
-- `track2_belief_ppo.zip`: 20-band belief PPO checkpoint.
-- `track2_exploration_ppo.zip`: 60-band initial exploration checkpoint.
-- `track2_diverse_ppo.zip`: PPO with anti-camping repeat penalties ($30.85$ stationary).
-- `track2_generalist_ppo.zip`: 150k-step multi-scenario window-regulated PPO ($11.3$ unique bands).
+No checkpoints are bundled in this source repository. Historical PPO weights,
+when retained, belong under `C:\Users\asus\Documents\SmartScanArtifacts`.
+
+Older development and tuning JSON reports are stored in
+`archive/results_legacy/`. They are retained for auditability but are not the
+current evidence set documented in the main README.
 
 ---
 
 ## 3. Active Production Core
 
 The production system in `scheduler/` centers around:
-1. **Adaptive Mixture of Experts (`adaptive_moe.py`)**: The verified champion ($20.39$ overall reward).
-2. **Asynchronous Background Planning Worker (`async_worker.py`)**: High-throughput sub-millisecond execution engine with reflex pulse interrupt.
+1. **Adaptive Mixture of Experts (`adaptive_moe.py`)**: Active advanced all-rounder; not universally superior on every seed set.
+2. **Asynchronous Background Planning Worker (`async_worker.py`)**: Experimental background-planning wrapper. Queue-pop latency is not reported as end-to-end latency.
 3. **Track 2 Perceptual World Model (`track2_core.py`, `track2_runtime.py`)**: Conv1D RF fingerprinting + 2D CNN Spectrogram + Recurrent GRU.
