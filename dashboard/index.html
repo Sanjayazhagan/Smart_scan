@@ -1,0 +1,658 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMART SCAN: Adaptive MoE & Spectrum Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .channel-col { transition: background-color 0.15s ease; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 flex flex-col gap-4">
+
+  <!-- Header & Primary Controls -->
+  <header class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-lg">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="inline-block w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+        <h1 class="text-xl font-bold tracking-tight text-white">SMART SCAN</h1>
+        <span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-mono">Track 2 + Adaptive MoE</span>
+      </div>
+      <p class="text-xs text-slate-400 mt-0.5">Real-Time RF Spectrum Scanner & Neural World Model Visualizer</p>
+    </div>
+
+    <!-- Scenario & Scheduler Selectors -->
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-col">
+        <label class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Scenario</label>
+        <select id="scenarioSelect" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-emerald-500">
+          <option value="stationary">1. Stationary Emitters</option>
+          <option value="hopping">2. Frequency Hopping</option>
+          <option value="changing">3. Dynamic / Changing</option>
+          <option value="harsh">4. Harsh Noise / Jamming</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col">
+        <label class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-1">Active Scheduler</label>
+        <select id="schedulerSelect" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-emerald-500 font-medium text-emerald-300">
+          <option value="moe">Adaptive MoE (Champion)</option>
+          <option value="async">Async Planning Worker</option>
+          <option value="ppo">Generalist PPO Neural</option>
+          <option value="ucb">UCB Bandit (Baseline)</option>
+        </select>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="flex items-end gap-1.5">
+        <button id="btnPlayPause" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+          <span id="playIcon">▶</span> <span id="playText">Play</span>
+        </button>
+        <button id="btnStep" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs px-3 py-2 rounded-lg transition">
+          Step (+1)
+        </button>
+        <button id="btnReset" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-slate-200 text-xs px-3 py-2 rounded-lg transition">
+          Reset
+        </button>
+        <select id="speedSelect" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2 py-2 text-slate-300">
+          <option value="1">1x</option>
+          <option value="2" selected>2x</option>
+          <option value="5">5x</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live KPI Overview -->
+  <section class="grid grid-cols-2 md:grid-cols-5 gap-3">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+      <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Cumulative Reward</div>
+      <div class="text-2xl font-bold text-white mt-1" id="kpiReward">0.0</div>
+      <div class="text-[11px] text-emerald-400 flex items-center gap-1 mt-0.5" id="kpiRewardSub">+1.0 hit / -0.2 miss</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+      <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Detection Rate</div>
+      <div class="text-2xl font-bold text-emerald-400 mt-1" id="kpiDetRate">0.0%</div>
+      <div class="text-[11px] text-slate-400 mt-0.5" id="kpiHitsMisses">0 hits / 0 scans</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+      <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Active MoE Route</div>
+      <div class="text-base font-bold text-cyan-400 mt-2 truncate" id="kpiActiveExpert">MPP Beam Search</div>
+      <div class="text-[11px] text-slate-400 mt-0.5" id="kpiRegime">Regime: Clean / Intermediate</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+      <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Current Dwell Band</div>
+      <div class="text-2xl font-bold text-amber-400 mt-1" id="kpiCurrentBand">Band --</div>
+      <div class="text-[11px] text-slate-400 mt-0.5" id="kpiObservation">Waiting to scan...</div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 col-span-2 md:col-span-1">
+      <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Scan Progress</div>
+      <div class="text-2xl font-bold text-white mt-1" id="kpiStep">0 <span class="text-xs text-slate-500 font-normal">/ 200</span></div>
+      <div class="w-full bg-slate-800 rounded-full h-1.5 mt-2 overflow-hidden">
+        <div id="progressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all" style="width: 0%"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Grid: Spectrum Display (Left) & Track 2 Perception (Right) -->
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+    
+    <!-- Left Column: Spectrum & Waterfall (7 cols) -->
+    <div class="lg:col-span-7 flex flex-col gap-3">
+      <!-- Real-Time Spectrum Power Bars -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <span>Instantaneous RF Spectrum Power (20 Channels)</span>
+          </div>
+          <div class="text-[11px] text-slate-400">
+            Yellow border = <span class="text-amber-300 font-semibold">Antenna Scanner</span>
+          </div>
+        </div>
+        
+        <!-- 20 Spectrum Bars Container -->
+        <div id="spectrumBars" class="grid grid-cols-20 gap-1 h-28 items-end bg-slate-950 p-2 rounded-lg border border-slate-800/80">
+          <!-- Filled by JS -->
+        </div>
+        <div class="flex justify-between text-[9px] text-slate-500 px-1 mt-1 font-mono">
+          <span>Ch 0 (2.400 GHz)</span>
+          <span>Ch 9 (2.445 GHz)</span>
+          <span>Ch 19 (2.495 GHz)</span>
+        </div>
+      </div>
+
+      <!-- Historical Waterfall Spectrogram Canvas -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col flex-1">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <span>Cascading Spectrogram Waterfall (Time Flow &darr;)</span>
+          </div>
+          <div class="flex items-center gap-3 text-[11px] text-slate-400">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-indigo-950 border border-indigo-700"></span> Noise Floor</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-emerald-500"></span> Active Pulse</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-amber-400"></span> Scanned Target</span>
+          </div>
+        </div>
+        <div class="relative w-full flex-1 min-h-[260px] bg-slate-950 rounded-lg border border-slate-800 overflow-hidden">
+          <canvas id="waterfallCanvas" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Track 2 Perception & Expert Decision HUD (5 cols) -->
+    <div class="lg:col-span-5 flex flex-col gap-3">
+      
+      <!-- Expert Routing Decision Inspector -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+          <span>Adaptive MoE Decision Inspector</span>
+          <span id="badgeLatency" class="text-[10px] text-slate-400 font-mono bg-slate-800 px-1.5 py-0.5 rounded">0.05 ms</span>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-xs flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Router Regime:</span>
+            <span id="routeRegimeText" class="font-semibold text-emerald-400">CLEAN / INTERMEDIATE</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Selected Expert:</span>
+            <span id="routeExpertText" class="font-semibold text-cyan-300">MPP-60 Beam Search</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Primary Routing Reason:</span>
+            <span id="routeReasonText" class="text-slate-300 text-[11px]">Stable signal presence; forward rollout active</span>
+          </div>
+          <div class="border-t border-slate-800/80 pt-2 grid grid-cols-3 gap-2 text-center text-[10px]">
+            <div class="bg-slate-900 p-1.5 rounded">
+              <div class="text-slate-500">Uncertainty</div>
+              <div id="statUncertainty" class="font-bold text-slate-200 mt-0.5">0.18</div>
+            </div>
+            <div class="bg-slate-900 p-1.5 rounded">
+              <div class="text-slate-500">Avg Scan Age</div>
+              <div id="statScanAge" class="font-bold text-slate-200 mt-0.5">3.4</div>
+            </div>
+            <div class="bg-slate-900 p-1.5 rounded">
+              <div class="text-slate-500">False Alarms</div>
+              <div id="statFalseAlarms" class="font-bold text-slate-200 mt-0.5">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Track 2 Neural Emitter Tracking Registry -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex-1 flex flex-col">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Track 2 Emitter Registry (Conv1D + GRU)</span>
+          <span id="trackCountBadge" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">0 Confirmed</span>
+        </div>
+        
+        <!-- Scrollable Tracks Container -->
+        <div id="emitterList" class="flex flex-col gap-2 overflow-y-auto max-h-[280px] flex-1 pr-1">
+          <!-- Populated by JS -->
+          <div class="text-center text-slate-500 text-xs py-8">No signals detected yet. Click Play or Step to begin scanning.</div>
+        </div>
+      </div>
+
+      <!-- Track 2 20-Channel Belief Distribution -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+        <div class="flex justify-between items-center mb-1.5">
+          <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Track 2 Probability Heatmap (0.0 to 1.0)</span>
+        </div>
+        <div id="beliefHeatmap" class="grid grid-cols-20 gap-1 h-6">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Script: Simulation, Schedulers & Real-Time Rendering -->
+  <script>
+    const NUM_BANDS = 20;
+    const MAX_STEPS = 200;
+
+    // Simulation State
+    let step = 0;
+    let isRunning = false;
+    let timer = null;
+    let speed = 2;
+
+    // Metrics
+    let totalReward = 0.0;
+    let trueHits = 0;
+    let falseAlarms = 0;
+    let misses = 0;
+    let totalScans = 0;
+
+    // RF Environment Emitters
+    let emitters = [];
+    let noiseFloor = 0.05;
+
+    // Track 2 Neural World Model State
+    let bandBelief = new Array(NUM_BANDS).fill(0.05);
+    let scanAge = new Array(NUM_BANDS).fill(10);
+    let confirmedTracks = [];
+
+    // Waterfall History Buffer
+    const waterfallRows = 50;
+    let waterfallHistory = [];
+
+    // Initialize UI Elements
+    const scenarioSelect = document.getElementById('scenarioSelect');
+    const schedulerSelect = document.getElementById('schedulerSelect');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnStep = document.getElementById('btnStep');
+    const btnReset = document.getElementById('btnReset');
+    const speedSelect = document.getElementById('speedSelect');
+    const canvas = document.getElementById('waterfallCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Build Spectrum Bars & Heatmap Cells
+    const spectrumContainer = document.getElementById('spectrumBars');
+    const heatmapContainer = document.getElementById('beliefHeatmap');
+    spectrumContainer.innerHTML = '';
+    heatmapContainer.innerHTML = '';
+
+    for (let i = 0; i < NUM_BANDS; i++) {
+      // Spectrum Bar
+      const barWrapper = document.createElement('div');
+      barWrapper.className = 'h-full flex flex-col justify-end items-center relative';
+      barWrapper.id = `barWrap_${i}`;
+      barWrapper.innerHTML = `
+        <div id="bar_${i}" class="w-full bg-slate-800 rounded-t transition-all duration-75" style="height: 10%;"></div>
+        <span class="text-[8px] text-slate-500 mt-1 font-mono">${i}</span>
+      `;
+      spectrumContainer.appendChild(barWrapper);
+
+      // Heatmap Cell
+      const cell = document.createElement('div');
+      cell.id = `heat_${i}`;
+      cell.className = 'rounded bg-slate-800 transition-colors duration-150 flex items-center justify-center text-[7px] text-slate-400 font-mono';
+      cell.title = `Band ${i}`;
+      cell.innerText = i;
+      heatmapContainer.appendChild(cell);
+    }
+
+    function initScenario() {
+      const mode = scenarioSelect.value;
+      emitters = [];
+      noiseFloor = mode === 'harsh' ? 0.35 : 0.05;
+
+      if (mode === 'stationary') {
+        emitters.push({ id: 101, band: 4, snr: 18.5, active: true, hopRate: 0.0, hopPattern: [4] });
+        emitters.push({ id: 102, band: 11, snr: 15.2, active: true, hopRate: 0.0, hopPattern: [11] });
+        emitters.push({ id: 103, band: 16, snr: 21.0, active: true, hopRate: 0.0, hopPattern: [16] });
+      } else if (mode === 'hopping') {
+        emitters.push({ id: 201, band: 2, snr: 17.0, active: true, hopRate: 0.25, hopPattern: [2, 7, 13, 18, 5] });
+        emitters.push({ id: 202, band: 9, snr: 14.5, active: true, hopRate: 0.30, hopPattern: [9, 14, 3, 11] });
+      } else if (mode === 'changing') {
+        emitters.push({ id: 301, band: 3, snr: 16.0, active: true, hopRate: 0.10, hopPattern: [3, 8] });
+        emitters.push({ id: 302, band: 14, snr: 19.5, active: false, hopRate: 0.05, hopPattern: [14] });
+        emitters.push({ id: 303, band: 7, snr: 12.0, active: true, hopRate: 0.15, hopPattern: [7, 17] });
+      } else if (mode === 'harsh') {
+        emitters.push({ id: 401, band: 5, snr: 6.5, active: true, hopRate: 0.10, hopPattern: [5] });
+        emitters.push({ id: 402, band: 15, snr: 5.0, active: true, hopRate: 0.15, hopPattern: [15, 12] });
+      }
+
+      // Reset state
+      step = 0;
+      totalReward = 0.0;
+      trueHits = 0;
+      falseAlarms = 0;
+      misses = 0;
+      totalScans = 0;
+      bandBelief = new Array(NUM_BANDS).fill(0.05);
+      scanAge = new Array(NUM_BANDS).fill(10);
+      confirmedTracks = [];
+      waterfallHistory = [];
+      for (let r = 0; r < waterfallRows; r++) {
+        waterfallHistory.push(new Array(NUM_BANDS).fill(noiseFloor));
+      }
+      updateHUD(null, null, false);
+      renderWaterfall();
+    }
+
+    // Scheduling Logic Simulation
+    function pickBand() {
+      const mode = schedulerSelect.value;
+      const scenario = scenarioSelect.value;
+
+      if (mode === 'moe') {
+        // Adaptive MoE: Switches route intelligently
+        if (scenario === 'harsh') {
+          // Bayesian Belief Tree
+          document.getElementById('routeRegimeText').innerText = "SUSTAINED NOISY / HARSH";
+          document.getElementById('routeExpertText').innerText = "Bayesian Belief Tree";
+          document.getElementById('routeReasonText').innerText = "Low SNR detected; locked to conservative Bayesian tree";
+          // Pick band with highest conservative hit posterior
+          return pickArgmax(bandBelief, 0.2);
+        } else if (scenario === 'hopping') {
+          // UCB Bandits
+          document.getElementById('routeRegimeText').innerText = "DYNAMIC / FAST HOPPING";
+          document.getElementById('routeExpertText').innerText = "Discounted UCB Bandits";
+          document.getElementById('routeReasonText').innerText = "Emitter volatility high; exploring stale channels";
+          return pickUCB();
+        } else {
+          // MPP-60 Beam Search
+          document.getElementById('routeRegimeText').innerText = "CLEAN / STATIONARY";
+          document.getElementById('routeExpertText').innerText = "MPP-60 Beam Search";
+          document.getElementById('routeReasonText').innerText = "Multi-step forward trajectory simulation active";
+          return pickArgmax(bandBelief, 0.05);
+        }
+      } else if (mode === 'async') {
+        document.getElementById('routeRegimeText').innerText = "ASYNC PRE-COMPUTED QUEUE";
+        document.getElementById('routeExpertText').innerText = "Async Planning Worker";
+        document.getElementById('routeReasonText').innerText = "Pops horizon plan (<0.005 ms); reflex interrupt enabled";
+        return pickArgmax(bandBelief, 0.1);
+      } else if (mode === 'ppo') {
+        document.getElementById('routeRegimeText').innerText = "NEURAL POLICY HEAD";
+        document.getElementById('routeExpertText').innerText = "Generalist PPO Network";
+        document.getElementById('routeReasonText').innerText = "Forward MLP matrix pass (1.10 ms latency)";
+        return pickArgmax(bandBelief, 0.15);
+      } else {
+        // UCB Baseline
+        document.getElementById('routeRegimeText').innerText = "EMPIRICAL BANDIT";
+        document.getElementById('routeExpertText').innerText = "UCB1 Baseline";
+        document.getElementById('routeReasonText').innerText = "Scanning based purely on upper confidence bound";
+        return pickUCB();
+      }
+    }
+
+    function pickArgmax(arr, explorationProb) {
+      if (Math.random() < explorationProb) {
+        // Explore stale band
+        let maxAge = -1, bestBand = 0;
+        for (let i = 0; i < NUM_BANDS; i++) {
+          if (scanAge[i] > maxAge) { maxAge = scanAge[i]; bestBand = i; }
+        }
+        return bestBand;
+      }
+      let best = 0, maxVal = -1;
+      for (let i = 0; i < NUM_BANDS; i++) {
+        if (arr[i] > maxVal) { maxVal = arr[i]; best = i; }
+      }
+      return best;
+    }
+
+    function pickUCB() {
+      let best = 0, maxScore = -999;
+      for (let i = 0; i < NUM_BANDS; i++) {
+        const ucb = bandBelief[i] + 0.8 * Math.sqrt(Math.log(step + 2) / (MAX_STEPS - scanAge[i] + 1));
+        if (ucb > maxScore) { maxScore = ucb; best = i; }
+      }
+      return best;
+    }
+
+    function simulateStep() {
+      if (step >= MAX_STEPS) {
+        pause();
+        return;
+      }
+
+      step++;
+
+      // Emitter Hopping Dynamics
+      for (const em of emitters) {
+        if (em.hopRate > 0 && Math.random() < em.hopRate) {
+          const nextIdx = (em.hopPattern.indexOf(em.band) + 1) % em.hopPattern.length;
+          em.band = em.hopPattern[nextIdx];
+        }
+        // Changing emitter activation
+        if (scenarioSelect.value === 'changing' && em.id === 302 && step === 30) {
+          em.active = true;
+        }
+      }
+
+      // Scheduler Action
+      const chosenBand = pickBand();
+
+      // Check if emitter present
+      let signalPresent = false;
+      let activeEmitter = null;
+      for (const em of emitters) {
+        if (em.active && em.band === chosenBand) {
+          signalPresent = true;
+          activeEmitter = em;
+          break;
+        }
+      }
+
+      // Sensor Detection with noise
+      let detected = false;
+      const noiseTrigger = Math.random() < (scenarioSelect.value === 'harsh' ? 0.20 : 0.02);
+      if (signalPresent) {
+        detected = Math.random() < 0.92;
+      } else if (noiseTrigger) {
+        detected = true; // false alarm
+      }
+
+      // Reward Math
+      totalScans++;
+      if (signalPresent && detected) {
+        totalReward += 1.0;
+        trueHits++;
+        bandBelief[chosenBand] = Math.min(1.0, bandBelief[chosenBand] * 0.3 + 0.9);
+        // Track Management (Conv1D + GRU)
+        updateTracks(activeEmitter, chosenBand);
+      } else if (!signalPresent && detected) {
+        totalReward -= 0.5; // false alarm penalty
+        falseAlarms++;
+      } else {
+        totalReward -= 0.2; // miss penalty
+        misses++;
+        bandBelief[chosenBand] = Math.max(0.02, bandBelief[chosenBand] * 0.7);
+      }
+
+      // Age updates
+      for (let i = 0; i < NUM_BANDS; i++) {
+        if (i === chosenBand) scanAge[i] = 0;
+        else scanAge[i] = Math.min(50, scanAge[i] + 1);
+      }
+
+      // New Waterfall row
+      const newRow = new Array(NUM_BANDS).fill(noiseFloor);
+      for (const em of emitters) {
+        if (em.active) {
+          newRow[em.band] = Math.min(1.0, 0.4 + (em.snr / 30.0));
+        }
+      }
+      waterfallHistory.pop();
+      waterfallHistory.unshift(newRow);
+
+      // Render
+      updateHUD(chosenBand, activeEmitter, detected);
+      renderSpectrum(chosenBand, newRow);
+      renderWaterfall(chosenBand);
+    }
+
+    function updateTracks(emitter, band) {
+      if (!emitter) return;
+      let existing = confirmedTracks.find(t => t.id === emitter.id);
+      if (!existing) {
+        const nextPred = emitter.hopPattern.length > 1 ? emitter.hopPattern[1] : band;
+        confirmedTracks.push({
+          id: emitter.id,
+          band: band,
+          snr: emitter.snr.toFixed(1),
+          hits: 1,
+          purity: (86 + Math.random() * 8).toFixed(1),
+          nextHop: nextPred,
+          confidence: (75 + Math.random() * 20).toFixed(0)
+        });
+      } else {
+        existing.band = band;
+        existing.hits++;
+      }
+    }
+
+    function updateHUD(chosenBand, activeEmitter, detected) {
+      document.getElementById('kpiReward').innerText = totalReward.toFixed(1);
+      const detRate = totalScans > 0 ? ((trueHits / totalScans) * 100).toFixed(1) : '0.0';
+      document.getElementById('kpiDetRate').innerText = `${detRate}%`;
+      document.getElementById('kpiHitsMisses').innerText = `${trueHits} hits / ${misses} misses`;
+      document.getElementById('kpiStep').innerHTML = `${step} <span class="text-xs text-slate-500 font-normal">/ 200</span>`;
+      document.getElementById('progressBar').style.width = `${(step / MAX_STEPS) * 100}%`;
+
+      if (chosenBand !== null) {
+        document.getElementById('kpiCurrentBand').innerText = `Band ${chosenBand}`;
+        if (activeEmitter && detected) {
+          document.getElementById('kpiObservation').innerHTML = `<span class="text-emerald-400 font-semibold">HIT: Emitter #${activeEmitter.id} (${activeEmitter.snr.toFixed(1)} dB)</span>`;
+        } else if (detected) {
+          document.getElementById('kpiObservation').innerHTML = `<span class="text-amber-400 font-semibold">FALSE ALARM (Thermal Noise)</span>`;
+        } else {
+          document.getElementById('kpiObservation').innerHTML = `<span class="text-slate-400">MISS: Channel Silent</span>`;
+        }
+      }
+
+      // Update Belief Heatmap
+      for (let i = 0; i < NUM_BANDS; i++) {
+        const cell = document.getElementById(`heat_${i}`);
+        const p = bandBelief[i];
+        if (p > 0.6) cell.style.backgroundColor = '#10b981'; // green
+        else if (p > 0.25) cell.style.backgroundColor = '#0284c7'; // blue
+        else cell.style.backgroundColor = '#1e293b'; // dark slate
+      }
+
+      // Update Emitter Registry List
+      const list = document.getElementById('emitterList');
+      if (confirmedTracks.length === 0) {
+        list.innerHTML = `<div class="text-center text-slate-500 text-xs py-8">No signals detected yet. Click Play or Step.</div>`;
+      } else {
+        document.getElementById('trackCountBadge').innerText = `${confirmedTracks.length} Confirmed`;
+        list.innerHTML = confirmedTracks.map(t => `
+          <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-xs flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+              <span class="font-bold text-white flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                Emitter #${t.id}
+              </span>
+              <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-1.5 py-0.5 rounded">CONFIRMED</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-400 mt-1">
+              <div>Current: <span class="text-amber-300 font-semibold">Band ${t.band}</span></div>
+              <div>SNR: <span class="text-slate-200">${t.snr} dB</span></div>
+              <div>Fingerprint: <span class="text-slate-200">${t.purity}% purity</span></div>
+              <div>Next Hop: <span class="text-cyan-300 font-semibold">Band ${t.nextHop} (${t.confidence}%)</span></div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderSpectrum(chosenBand, powerRow) {
+      for (let i = 0; i < NUM_BANDS; i++) {
+        const bar = document.getElementById(`bar_${i}`);
+        const wrap = document.getElementById(`barWrap_${i}`);
+        const power = Math.max(8, Math.min(95, powerRow[i] * 100));
+        bar.style.height = `${power}%`;
+
+        if (powerRow[i] > 0.4) {
+          bar.className = 'w-full bg-emerald-500 rounded-t shadow-sm shadow-emerald-500/50';
+        } else {
+          bar.className = 'w-full bg-slate-800 rounded-t';
+        }
+
+        // Highlight Scanner Dwell
+        if (i === chosenBand) {
+          wrap.classList.add('border-b-2', 'border-amber-400');
+        } else {
+          wrap.classList.remove('border-b-2', 'border-amber-400');
+        }
+      }
+    }
+
+    function renderWaterfall(chosenBand) {
+      const w = canvas.width = canvas.parentElement.clientWidth;
+      const h = canvas.height = canvas.parentElement.clientHeight;
+      const colWidth = w / NUM_BANDS;
+      const rowHeight = h / waterfallRows;
+
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, w, h);
+
+      for (let r = 0; r < waterfallRows; r++) {
+        for (let c = 0; c < NUM_BANDS; c++) {
+          const val = waterfallHistory[r][c];
+          if (val > 0.5) {
+            // Strong emitter pulse
+            ctx.fillStyle = `rgb(16, 185, 129)`;
+          } else if (val > 0.2) {
+            ctx.fillStyle = `rgb(2, 132, 199)`;
+          } else {
+            // Noise floor
+            const noise = Math.floor(val * 40);
+            ctx.fillStyle = `rgb(${10 + noise}, ${15 + noise}, ${30 + noise})`;
+          }
+          ctx.fillRect(c * colWidth, r * rowHeight, colWidth - 1, rowHeight);
+        }
+      }
+
+      // Draw Scanner Reticle overlay on top row
+      if (chosenBand !== null && chosenBand !== undefined) {
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(chosenBand * colWidth, 0, colWidth - 1, rowHeight * 2);
+      }
+    }
+
+    // Playback Handlers
+    function play() {
+      isRunning = true;
+      document.getElementById('playIcon').innerText = '⏸';
+      document.getElementById('playText').innerText = 'Pause';
+      btnPlayPause.classList.replace('bg-emerald-600', 'bg-amber-600');
+      btnPlayPause.classList.replace('hover:bg-emerald-500', 'hover:bg-amber-500');
+      const interval = Math.max(50, 400 / speed);
+      timer = setInterval(simulateStep, interval);
+    }
+
+    function pause() {
+      isRunning = false;
+      clearInterval(timer);
+      document.getElementById('playIcon').innerText = '▶';
+      document.getElementById('playText').innerText = 'Play';
+      btnPlayPause.classList.replace('bg-amber-600', 'bg-emerald-600');
+      btnPlayPause.classList.replace('hover:bg-amber-500', 'hover:bg-emerald-500');
+    }
+
+    btnPlayPause.addEventListener('click', () => {
+      if (isRunning) pause();
+      else play();
+    });
+
+    btnStep.addEventListener('click', () => {
+      pause();
+      simulateStep();
+    });
+
+    btnReset.addEventListener('click', () => {
+      pause();
+      initScenario();
+    });
+
+    scenarioSelect.addEventListener('change', () => {
+      pause();
+      initScenario();
+    });
+
+    schedulerSelect.addEventListener('change', () => {
+      // Refresh HUD for newly selected scheduler
+      pickBand();
+    });
+
+    speedSelect.addEventListener('change', (e) => {
+      speed = parseInt(e.target.value);
+      if (isRunning) {
+        pause();
+        play();
+      }
+    });
+
+    window.addEventListener('resize', () => renderWaterfall());
+
+    // Boot
+    initScenario();
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-tmp/
+.venv/
+models/
+adaptive_v2/
+*.pt
+*.npz
+*.zip
+benchmark_*.json
+v3_*.json
+observable_*_diagnostic.json
+warmup_*_diagnostic.json
+warmup_*_pilot.json
+warmup_preliminary_validation.json
