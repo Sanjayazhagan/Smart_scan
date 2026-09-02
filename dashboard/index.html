@@ -3,91 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMART SCAN: Live Signal Interceptor</title>
+  <title>SMART SCAN: AI Radio Interceptor</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .scan-glow { box-shadow: 0 0 15px rgba(245, 158, 11, 0.6); }
-    .hit-pulse { animation: hitFlash 0.3s ease-out; }
-    @keyframes hitFlash {
-      0% { transform: scaleY(1.15); filter: brightness(1.8); }
-      100% { transform: scaleY(1); filter: brightness(1); }
+    .active-antenna {
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.9);
+      border-color: #f59e0b !important;
+      transform: translateY(-4px);
+    }
+    .hit-flash {
+      animation: flashGreen 0.4s ease-out;
+    }
+    @keyframes flashGreen {
+      0% { background-color: rgba(16, 185, 129, 0.8); }
+      100% { background-color: rgba(15, 23, 42, 1); }
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-6 flex flex-col items-center justify-center">
+<body class="bg-slate-950 text-slate-100 min-h-screen p-4 md:p-8 flex flex-col items-center justify-center">
 
-  <div class="w-full max-w-5xl flex flex-col gap-4">
+  <div class="w-full max-w-5xl flex flex-col gap-5">
 
-    <!-- Top Bar: Clean, Minimal, No Blabber -->
-    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-      <div class="flex items-center gap-3">
-        <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <h1 class="text-xl font-extrabold tracking-tight text-white">SMART SCAN</h1>
-        <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono font-semibold" id="modeBadge">Fixed Signals</span>
+    <!-- Mission Header: Explaining What is Happening In 1 Glance -->
+    <header class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-3">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h1 class="text-2xl font-black tracking-tight text-white">SMART SCAN: AI Radio Interceptor</h1>
+          </div>
+          <p class="text-sm text-slate-300 mt-1">
+            <strong class="text-amber-400">The Problem:</strong> You have 1 receiver antenna, but 20 radio channels. Targets jump channels secretly. 
+            <br>
+            <strong class="text-emerald-400">The AI's Goal:</strong> Predict where the hidden signals will appear next and intercept them!
+          </p>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center gap-3">
+          <button id="btnPlay" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm px-6 py-3 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer">
+            <span id="playIcon">▶</span> <span id="playText">START SCANNING</span>
+          </button>
+          <button id="btnReset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm px-4 py-3 rounded-xl transition cursor-pointer">
+            Reset
+          </button>
+          <select id="scenarioSelect" class="bg-slate-800 border border-slate-700 text-xs font-bold rounded-xl px-3 py-3 text-slate-200">
+            <option value="stationary">Target Mode: Fixed Channels</option>
+            <option value="hopping">Target Mode: Frequency Hopping</option>
+            <option value="harsh">Target Mode: Heavy Static / Jamming</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Live Score & Capture Rate -->
-      <div class="flex items-center gap-6">
-        <div class="text-right">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Captured</div>
-          <div class="text-2xl font-black text-emerald-400 font-mono" id="kpiScore">+0.0</div>
+      <!-- Live Scoreboard -->
+      <div class="grid grid-cols-3 gap-3 border-t border-slate-800 pt-3">
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+          <div class="text-xs text-slate-400 font-semibold uppercase">Total Score</div>
+          <div class="text-2xl font-black text-emerald-400 font-mono mt-0.5" id="lblScore">+0.0</div>
+          <div class="text-[11px] text-slate-500">(+1.0 per hit / -0.2 per empty scan)</div>
         </div>
-        <div class="h-8 w-px bg-slate-800"></div>
-        <div class="text-right">
-          <div class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Accuracy</div>
-          <div class="text-2xl font-black text-cyan-400 font-mono" id="kpiRate">0%</div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+          <div class="text-xs text-slate-400 font-semibold uppercase">Intercept Accuracy</div>
+          <div class="text-2xl font-black text-cyan-400 font-mono mt-0.5" id="lblAccuracy">0%</div>
+          <div class="text-[11px] text-slate-500" id="lblCounts">0 Caught / 0 Attempts</div>
         </div>
-      </div>
-
-      <!-- Minimal Controls -->
-      <div class="flex items-center gap-2">
-        <button id="btnPlay" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm px-5 py-2 rounded-xl transition shadow-lg flex items-center gap-2 cursor-pointer">
-          <span id="playIcon">▶</span> <span id="playText">Scan</span>
-        </button>
-        <button id="btnReset" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm px-4 py-2 rounded-xl transition cursor-pointer">
-          Reset
-        </button>
-        <select id="scenarioSelect" class="bg-slate-800 border border-slate-700 text-xs font-semibold rounded-xl px-3 py-2 text-slate-200 focus:outline-none">
-          <option value="stationary">Stationary Signals</option>
-          <option value="hopping">Hopping Signals</option>
-          <option value="harsh">Noisy Channel</option>
-        </select>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+          <div class="text-xs text-slate-400 font-semibold uppercase">Active Emitters Detected</div>
+          <div class="text-2xl font-black text-amber-400 font-mono mt-0.5" id="lblActive">0 Emitters</div>
+          <div class="text-[11px] text-slate-500" id="lblStep">Step 0 / 200</div>
+        </div>
       </div>
     </header>
 
-    <!-- Spectrum Display: 20 Channels Live Power -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-3">
-      <div class="flex justify-between items-center text-xs">
-        <span class="font-bold text-slate-300 uppercase tracking-wider">Radio Spectrum (20 Channels)</span>
-        <div class="flex items-center gap-4 text-[11px]">
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Signal Active</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-amber-400"></span> AI Scanner</span>
+    <!-- The 20 Channels: Visual Grid -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-base font-bold text-white uppercase tracking-wider">The 20 Radio Channels</h2>
+          <p class="text-xs text-slate-400">The AI antenna can only tune to <strong class="text-amber-400">1 channel</strong> at a time (shown by the glowing yellow border).</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500"></span> Signal Present</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400 border border-amber-500"></span> Antenna Listening</span>
         </div>
       </div>
 
-      <!-- 20 Spectrum Columns -->
-      <div id="spectrum" class="grid grid-cols-20 gap-1.5 h-44 bg-slate-950 p-3 rounded-xl border border-slate-800/80 items-end">
-        <!-- Bars injected by JS -->
+      <!-- 20 Visual Channel Slots -->
+      <div id="channelGrid" class="grid grid-cols-5 md:grid-cols-10 gap-2.5">
+        <!-- Injected by JS -->
       </div>
 
-      <!-- AI Action Banner -->
-      <div class="bg-slate-950 border border-slate-800/80 rounded-xl px-4 py-3 flex items-center justify-between">
+      <!-- AI Thought Bubble: Explaining EXACTLY Why It Chose That Channel -->
+      <div id="aiThoughtBox" class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex items-center justify-between transition-all">
         <div class="flex items-center gap-3">
-          <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
-          <span id="statusText" class="text-sm font-semibold text-slate-300">Ready. Click Scan to start capturing signals.</span>
+          <div id="statusIcon" class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-lg">📡</div>
+          <div>
+            <div id="aiActionTitle" class="text-sm font-bold text-white">AI Scanner is Idle</div>
+            <div id="aiActionReason" class="text-xs text-slate-400 mt-0.5">Click "START SCANNING" to see the AI predict and hunt signals.</div>
+          </div>
         </div>
-        <div id="statusResult" class="text-xs font-bold font-mono px-2.5 py-1 rounded bg-slate-800 text-slate-400">IDLE</div>
+        <div id="badgeOutcome" class="text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400">READY</div>
       </div>
     </section>
 
-    <!-- Waterfall Spectrogram -->
-    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col gap-2">
+    <!-- Waterfall Display: History of Emitters Hopping -->
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl flex flex-col gap-2">
       <div class="flex justify-between items-center text-xs">
-        <span class="font-bold text-slate-300 uppercase tracking-wider">Signal Waterfall (History Flowing Down &darr;)</span>
-        <span class="text-[11px] text-slate-400 font-mono" id="stepCounter">Step 0 / 200</span>
+        <span class="font-bold text-slate-300 uppercase tracking-wider">Spectrogram Waterfall (Live Signal History &darr;)</span>
+        <span class="text-slate-500">Green = Where signals appeared | Yellow = Where AI caught them</span>
       </div>
-      <div class="relative w-full h-64 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+      <div class="relative w-full h-52 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
         <canvas id="waterfall" class="w-full h-full block"></canvas>
       </div>
     </section>
@@ -96,27 +122,25 @@
 
   <script>
     const BANDS = 20;
-    const ROWS = 45;
+    const ROWS = 35;
     let step = 0;
     let isRunning = false;
     let timer = null;
     let score = 0.0;
     let hits = 0;
-    let scans = 0;
+    let attempts = 0;
 
-    // Emitters state
     let emitters = [];
-    let noiseLevel = 0.08;
+    let noiseFloor = 0.05;
 
-    // AI Tracking memory
-    let belief = new Array(BANDS).fill(0.05);
+    // AI's internal belief of where signals are (0.0 to 1.0)
+    let aiBelief = new Array(BANDS).fill(0.05);
 
-    // Waterfall buffer
-    let history = [];
-    for (let r = 0; r < ROWS; r++) history.push(new Array(BANDS).fill(0.05));
+    // Waterfall history matrix
+    let waterfallHistory = [];
+    for (let r = 0; r < ROWS; r++) waterfallHistory.push(new Array(BANDS).fill(0));
 
-    // UI elements
-    const spectrumDiv = document.getElementById('spectrum');
+    const grid = document.getElementById('channelGrid');
     const canvas = document.getElementById('waterfall');
     const ctx = canvas.getContext('2d');
     const btnPlay = document.getElementById('btnPlay');
@@ -124,175 +148,203 @@
     const playText = document.getElementById('playText');
     const scenarioSelect = document.getElementById('scenarioSelect');
 
-    // Build 20 columns
-    spectrumDiv.innerHTML = '';
+    // Build the 20 Channel Cards
+    grid.innerHTML = '';
     for (let i = 0; i < BANDS; i++) {
-      const col = document.createElement('div');
-      col.id = `col_${i}`;
-      col.className = 'h-full flex flex-col justify-end items-center relative';
-      col.innerHTML = `
-        <div id="bar_${i}" class="w-full bg-slate-800 rounded-t transition-all duration-75" style="height: 10%;"></div>
-        <span class="text-[10px] text-slate-500 mt-1 font-mono font-semibold">${i}</span>
+      const card = document.createElement('div');
+      card.id = `chan_${i}`;
+      card.className = 'bg-slate-950 border border-slate-800 rounded-xl p-2.5 flex flex-col items-center justify-between h-24 transition-all duration-150';
+      card.innerHTML = `
+        <div class="flex justify-between w-full text-[11px] font-mono text-slate-500">
+          <span>Ch ${i}</span>
+          <span id="p_${i}" class="text-[9px] text-slate-600">5%</span>
+        </div>
+        <div id="sig_${i}" class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-sm transition-all">
+          <span id="ico_${i}" class="opacity-0">📡</span>
+        </div>
+        <div class="text-[9px] text-slate-500 uppercase font-semibold" id="lbl_${i}">Silent</div>
       `;
-      spectrumDiv.appendChild(col);
+      grid.appendChild(card);
     }
 
     function initScenario() {
       const mode = scenarioSelect.value;
       emitters = [];
-      noiseLevel = mode === 'harsh' ? 0.28 : 0.06;
+      noiseFloor = mode === 'harsh' ? 0.25 : 0.05;
 
       if (mode === 'stationary') {
-        document.getElementById('modeBadge').innerText = 'Stationary Signals';
         emitters = [
-          { id: 1, band: 4, power: 0.90, hops: [4], hopRate: 0 },
-          { id: 2, band: 11, power: 0.85, hops: [11], hopRate: 0 },
-          { id: 3, band: 16, power: 0.95, hops: [16], hopRate: 0 }
+          { id: 'Alpha', band: 3, hops: [3], hopRate: 0, desc: 'Fixed Radar #1' },
+          { id: 'Bravo', band: 11, hops: [11], hopRate: 0, desc: 'Fixed Radar #2' },
+          { id: 'Charlie', band: 17, hops: [17], hopRate: 0, desc: 'Fixed Radar #3' }
         ];
       } else if (mode === 'hopping') {
-        document.getElementById('modeBadge').innerText = 'Hopping Signals';
         emitters = [
-          { id: 1, band: 2, power: 0.90, hops: [2, 7, 13, 18, 5], hopRate: 0.22 },
-          { id: 2, band: 9, power: 0.85, hops: [9, 14, 3, 11], hopRate: 0.25 }
+          { id: 'Ghost-1', band: 2, hops: [2, 7, 13, 18, 5], hopRate: 0.25, desc: 'Agile Hopper #1' },
+          { id: 'Ghost-2', band: 9, hops: [9, 14, 3, 16], hopRate: 0.30, desc: 'Agile Hopper #2' }
         ];
       } else {
-        document.getElementById('modeBadge').innerText = 'Noisy Channel';
         emitters = [
-          { id: 1, band: 6, power: 0.65, hops: [6], hopRate: 0.05 },
-          { id: 2, band: 14, power: 0.60, hops: [14, 10], hopRate: 0.10 }
+          { id: 'Jammer', band: 6, hops: [6], hopRate: 0.05, desc: 'Signal buried in heavy static' },
+          { id: 'Noisy', band: 14, hops: [14, 10], hopRate: 0.10, desc: 'Low-power transmitter' }
         ];
       }
 
       step = 0;
       score = 0.0;
       hits = 0;
-      scans = 0;
-      belief = new Array(BANDS).fill(0.05);
-      history = [];
-      for (let r = 0; r < ROWS; r++) history.push(new Array(BANDS).fill(noiseLevel));
+      attempts = 0;
+      aiBelief = new Array(BANDS).fill(0.05);
+      waterfallHistory = [];
+      for (let r = 0; r < ROWS; r++) waterfallHistory.push(new Array(BANDS).fill(0));
 
-      updateStats(null, false, false);
+      updateUI(null, false, null);
       renderWaterfall(null);
     }
 
-    // AI Decision: Adaptive MoE behavior
-    function aiPickBand() {
-      // Pick highest belief with slight curiosity
+    // AI chooses which band to listen to
+    function aiChooseBand() {
+      // 10% smart exploration, 90% exploit highest belief
       if (Math.random() < 0.10) {
         return Math.floor(Math.random() * BANDS);
       }
-      let best = 0, max = -1;
+      let best = 0, maxP = -1;
       for (let i = 0; i < BANDS; i++) {
-        if (belief[i] > max) { max = belief[i]; best = i; }
+        if (aiBelief[i] > maxP) { maxP = aiBelief[i]; best = i; }
       }
       return best;
     }
 
-    function tick() {
+    function stepSimulation() {
       if (step >= 200) { pause(); return; }
       step++;
 
-      // Emitters hop
+      // Emitters move (hop)
+      let hoppingEvent = null;
       for (const em of emitters) {
         if (em.hopRate > 0 && Math.random() < em.hopRate) {
+          const oldBand = em.band;
           const nextIdx = (em.hops.indexOf(em.band) + 1) % em.hops.length;
           em.band = em.hops[nextIdx];
+          hoppingEvent = `${em.id} jumped Ch ${oldBand} -> Ch ${em.band}`;
         }
       }
 
-      // AI Scans
-      const scanBand = aiPickBand();
+      // AI tunes antenna to 1 band
+      const scannedBand = aiChooseBand();
 
-      // Check if signal exists on scanBand
-      let isHit = false;
-      let activeEm = null;
+      // Is there an active emitter on scannedBand?
+      let hitEmitter = null;
       for (const em of emitters) {
-        if (em.band === scanBand) {
-          isHit = true;
-          activeEm = em;
+        if (em.band === scannedBand) {
+          hitEmitter = em;
           break;
         }
       }
 
-      scans++;
+      attempts++;
+      const isHit = hitEmitter !== null;
+
       if (isHit) {
         hits++;
         score += 1.0;
-        belief[scanBand] = Math.min(1.0, belief[scanBand] * 0.4 + 0.85);
+        aiBelief[scannedBand] = Math.min(0.95, aiBelief[scannedBand] * 0.3 + 0.85);
       } else {
         score -= 0.2;
-        belief[scanBand] = Math.max(0.02, belief[scanBand] * 0.6);
+        aiBelief[scannedBand] = Math.max(0.02, aiBelief[scannedBand] * 0.6);
       }
 
-      // Waterfall update
-      const row = new Array(BANDS).fill(noiseLevel);
-      for (const em of emitters) {
-        row[em.band] = em.power;
-      }
-      history.pop();
-      history.unshift(row);
+      // Record in waterfall
+      const row = new Array(BANDS).fill(noiseFloor);
+      for (const em of emitters) row[em.band] = 1.0;
+      waterfallHistory.pop();
+      waterfallHistory.unshift(row);
 
       // Render
-      updateStats(scanBand, isHit, activeEm);
-      renderSpectrum(scanBand, row, isHit);
-      renderWaterfall(scanBand);
+      updateUI(scannedBand, isHit, hitEmitter, hoppingEvent);
+      renderWaterfall(scannedBand);
     }
 
-    function updateStats(scanBand, isHit, activeEm) {
-      document.getElementById('kpiScore').innerText = `${score >= 0 ? '+' : ''}${score.toFixed(1)}`;
-      const rate = scans > 0 ? Math.round((hits / scans) * 100) : 0;
-      document.getElementById('kpiRate').innerText = `${rate}%`;
-      document.getElementById('stepCounter').innerText = `Step ${step} / 200`;
+    function updateUI(scannedBand, isHit, hitEmitter, hoppingEvent) {
+      document.getElementById('lblScore').innerText = `${score >= 0 ? '+' : ''}${score.toFixed(1)}`;
+      const pct = attempts > 0 ? Math.round((hits / attempts) * 100) : 0;
+      document.getElementById('lblAccuracy').innerText = `${pct}%`;
+      document.getElementById('lblCounts').innerText = `${hits} Caught / ${attempts} Attempts`;
+      document.getElementById('lblActive').innerText = `${emitters.length} Transmitters`;
+      document.getElementById('lblStep').innerText = `Step ${step} / 200`;
 
-      const dot = document.getElementById('statusDot');
-      const text = document.getElementById('statusText');
-      const res = document.getElementById('statusResult');
+      // Update 20 Channel Cards
+      for (let i = 0; i < BANDS; i++) {
+        const card = document.getElementById(`chan_${i}`);
+        const sig = document.getElementById(`sig_${i}`);
+        const ico = document.getElementById(`ico_${i}`);
+        const lbl = document.getElementById(`lbl_${i}`);
+        const pLbl = document.getElementById(`p_${i}`);
 
-      if (scanBand === null) {
-        dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-600';
-        text.innerText = 'Ready. Click Scan to start capturing signals.';
-        res.className = 'text-xs font-bold font-mono px-2.5 py-1 rounded bg-slate-800 text-slate-400';
-        res.innerText = 'IDLE';
-        return;
+        // Update probability display
+        pLbl.innerText = `${Math.round(aiBelief[i] * 100)}%`;
+
+        // Check if real emitter is here
+        const emHere = emitters.find(e => e.band === i);
+
+        if (i === scannedBand) {
+          card.classList.add('active-antenna');
+          if (isHit) {
+            card.classList.add('hit-flash');
+            sig.className = 'w-8 h-8 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-bold shadow-lg shadow-emerald-500/50';
+            ico.className = 'opacity-100';
+            lbl.innerText = 'CAUGHT!';
+            lbl.className = 'text-[9px] text-emerald-400 font-bold uppercase';
+          } else {
+            card.classList.remove('hit-flash');
+            sig.className = 'w-8 h-8 rounded-lg bg-slate-800 text-slate-500 flex items-center justify-center';
+            ico.className = 'opacity-0';
+            lbl.innerText = 'EMPTY';
+            lbl.className = 'text-[9px] text-slate-500 font-semibold uppercase';
+          }
+        } else {
+          card.classList.remove('active-antenna', 'hit-flash');
+          if (emHere) {
+            // Emitter is hiding here in the dark
+            sig.className = 'w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-800/60 text-emerald-400 flex items-center justify-center';
+            ico.className = 'opacity-60';
+            lbl.innerText = emHere.id;
+            lbl.className = 'text-[9px] text-emerald-500 font-medium uppercase';
+          } else {
+            sig.className = 'w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center';
+            ico.className = 'opacity-0';
+            lbl.innerText = 'Silent';
+            lbl.className = 'text-[9px] text-slate-600 font-normal uppercase';
+          }
+        }
       }
+
+      // Update AI Thought Box
+      const icon = document.getElementById('statusIcon');
+      const title = document.getElementById('aiActionTitle');
+      const reason = document.getElementById('aiActionReason');
+      const badge = document.getElementById('badgeOutcome');
+
+      if (scannedBand === null) return;
 
       if (isHit) {
-        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping';
-        text.innerHTML = `<span class="text-white font-bold">LOCKED ON!</span> Captured signal on <span class="text-amber-400 font-bold">Channel ${scanBand}</span> (+1.0 point)`;
-        res.className = 'text-xs font-bold font-mono px-2.5 py-1 rounded bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30';
-        res.innerText = 'HIT +1.0';
+        icon.className = 'w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center text-lg font-black';
+        icon.innerText = '🎯';
+        title.innerHTML = `INTERCEPTED! Caught <span class="text-emerald-400 font-black">${hitEmitter.desc}</span> on Channel ${scannedBand}`;
+        reason.innerText = `AI's neural world model predicted signal presence. Reward: +1.0 point!`;
+        badge.className = 'text-xs font-mono font-black px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30';
+        badge.innerText = 'HIT +1.0';
       } else {
-        dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-500';
-        text.innerHTML = `Scanned <span class="text-slate-200 font-semibold">Channel ${scanBand}</span> &mdash; Channel was silent (-0.2)`;
-        res.className = 'text-xs font-bold font-mono px-2.5 py-1 rounded bg-slate-800 text-slate-400';
-        res.innerText = 'MISS -0.2';
+        icon.className = 'w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center text-lg';
+        icon.innerText = '💨';
+        title.innerHTML = `MISSED! Channel ${scannedBand} was empty`;
+        reason.innerText = hoppingEvent ? `(Alert: ${hoppingEvent} while AI checked Ch ${scannedBand})` : `No transmitter was active here. Penalty: -0.2 points.`;
+        badge.className = 'text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400';
+        badge.innerText = 'MISS -0.2';
       }
     }
 
-    function renderSpectrum(scanBand, powerRow, isHit) {
-      for (let i = 0; i < BANDS; i++) {
-        const bar = document.getElementById(`bar_${i}`);
-        const col = document.getElementById(`col_${i}`);
-        const p = powerRow[i];
-        bar.style.height = `${Math.max(12, Math.min(95, p * 100))}%`;
-
-        if (p > 0.4) {
-          bar.className = 'w-full bg-emerald-400 rounded-t shadow-md shadow-emerald-500/40';
-        } else {
-          bar.className = 'w-full bg-slate-800 rounded-t';
-        }
-
-        if (i === scanBand) {
-          col.classList.add('scan-glow', 'border-b-4', isHit ? 'border-emerald-400' : 'border-amber-400');
-          if (isHit) bar.classList.add('hit-pulse');
-        } else {
-          col.classList.remove('scan-glow', 'border-b-4', 'border-emerald-400', 'border-amber-400');
-          bar.classList.remove('hit-pulse');
-        }
-      }
-    }
-
-    function renderWaterfall(scanBand) {
+    function renderWaterfall(scannedBand) {
       const w = canvas.width = canvas.parentElement.clientWidth;
       const h = canvas.height = canvas.parentElement.clientHeight;
       const colW = w / BANDS;
@@ -303,39 +355,38 @@
 
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < BANDS; c++) {
-          const val = history[r][c];
-          if (val > 0.4) {
-            ctx.fillStyle = '#34d399'; // bright emerald
+          const val = waterfallHistory[r][c];
+          if (val > 0.5) {
+            ctx.fillStyle = '#10b981'; // green pulse
           } else {
-            const n = Math.floor(val * 40);
-            ctx.fillStyle = `rgb(${10 + n}, ${15 + n}, ${30 + n})`;
+            ctx.fillStyle = '#0f172a'; // dark slate noise
           }
           ctx.fillRect(c * colW, r * rowH, colW - 1, rowH);
         }
       }
 
-      // Scanner highlight box on top row
-      if (scanBand !== null) {
+      // Yellow target box where AI antenna is pointed
+      if (scannedBand !== null) {
         ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 2.5;
-        ctx.strokeRect(scanBand * colW, 0, colW - 1, rowH * 2.5);
+        ctx.lineWidth = 3;
+        ctx.strokeRect(scannedBand * colW, 0, colW - 1, rowH * 3);
       }
     }
 
     function play() {
       isRunning = true;
       playIcon.innerText = '⏸';
-      playText.innerText = 'Pause';
+      playText.innerText = 'PAUSE';
       btnPlay.classList.replace('bg-emerald-500', 'bg-amber-500');
       btnPlay.classList.replace('hover:bg-emerald-400', 'hover:bg-amber-400');
-      timer = setInterval(tick, 180);
+      timer = setInterval(stepSimulation, 220);
     }
 
     function pause() {
       isRunning = false;
       clearInterval(timer);
       playIcon.innerText = '▶';
-      playText.innerText = 'Scan';
+      playText.innerText = 'RESUME SCAN';
       btnPlay.classList.replace('bg-amber-500', 'bg-emerald-500');
       btnPlay.classList.replace('hover:bg-amber-400', 'hover:bg-emerald-400');
     }
@@ -345,7 +396,7 @@
     scenarioSelect.addEventListener('change', () => { pause(); initScenario(); });
     window.addEventListener('resize', () => renderWaterfall(null));
 
-    // Start clean
+    // Boot
     initScenario();
   </script>
 </body>
