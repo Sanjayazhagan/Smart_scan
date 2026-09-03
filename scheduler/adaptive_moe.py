@@ -730,12 +730,13 @@ class ObservableRegimeMonitor:
 
 
 class ObservableDiscountedUCBScheduler(BaseScheduler):
-    """Non-stationary UCB using only detection quality and scan history.
+    """Non-stationary UCB with reliability-gated Track-2 guidance.
 
     Counts slowly decay so a band that moved or went quiet does not dominate
     forever.  The update deliberately ignores simulator reward/truth: a strong,
     high-quality detection is useful evidence, while a miss supplies only a
-    small value.
+    small value. Track-2 future-band belief is fused only when confirmed tracks,
+    observation quality, uncertainty, and prediction error make it credible.
     """
 
     def __init__(
@@ -745,6 +746,7 @@ class ObservableDiscountedUCBScheduler(BaseScheduler):
         decay: float = 0.985,
         value_learning_rate: float = 0.20,
         exploration_scale: float = 0.75,
+        neural_guidance_scale: float = 0.65,
         manage_runtime: bool = False,
     ):
         super().__init__(num_bands)
@@ -752,46 +754,117 @@ class ObservableDiscountedUCBScheduler(BaseScheduler):
         self.decay = float(decay)
         self.value_learning_rate = float(value_learning_rate)
         self.exploration_scale = float(exploration_scale)
+        self.neural_guidance_scale = float(neural_guidance_scale)
+        if self.neural_guidance_scale < 0.0:
+            raise ValueError("neural_guidance_scale must be non-negative")
         self.manage_runtime = bool(manage_runtime)
         self.timestamp = 0.0
         self.counts = np.zeros(num_bands, dtype=np.float64)
         self.values = np.zeros(num_bands, dtype=np.float64)
         self.total_observations = 0.0
+        self.neural_brier_ema = 0.25
+        self.neural_calibration_evidence = 0
+        self.neural_positive_evidence = 0
+        self.neural_high_skill_streak = 0
+        self._last_track2_probability: float | None = None
         self.last_trace: dict = {}
 
     def select_band(self) -> int:
+        global_belief = self.runtime.get_global_belief()
+        features = extract_complexity_features(global_belief)
         never_observed = np.flatnonzero(self.counts < 0.5)
         if never_observed.size:
             band = int(never_observed[0])
+            self._last_track2_probability = float(features.band_belief[band])
             self.last_trace = {
                 "mode": "initial_coverage",
                 "selected_band": band,
+                "track2_band_probability": self._last_track2_probability,
+                "neural_guidance_weight": 0.0,
             }
             return band
-        global_belief = self.runtime.get_global_belief()
-        features = extract_complexity_features(global_belief)
+        feature_values = features.as_dict()
         bonus = self.exploration_scale * np.sqrt(
             np.log(self.total_observations + 2.0) / np.maximum(self.counts, 1e-6)
         )
+        support = float(
+            np.clip(4.0 * feature_values["plausible_emitter_fraction"], 0.0, 1.0)
+        )
+        quality = float(feature_values["mean_observation_quality"])
+        uncertainty = float(feature_values["mean_uncertainty"])
+        prediction_error = float(feature_values["prediction_error"])
+        belief_sharpness = float(
+            np.clip(1.0 - feature_values["band_entropy"], 0.0, 1.0)
+        )
+        state_reliability = float(
+            np.clip(
+                support
+                * (0.25 + 0.75 * quality)
+                * (1.0 - 0.70 * uncertainty)
+                * (1.0 - 0.80 * prediction_error)
+                * (0.40 + 0.60 * belief_sharpness),
+                0.0,
+                1.0,
+            )
+        )
+        calibration_maturity = float(
+            np.clip(self.neural_calibration_evidence / 40.0, 0.0, 1.0)
+        )
+        calibration_skill = float(
+            np.clip(1.0 - self.neural_brier_ema / 0.25, 0.0, 1.0)
+        )
+        positive_maturity = float(
+            np.clip(self.neural_positive_evidence / 20.0, 0.0, 1.0)
+        )
+        calibration_gate = float(
+            calibration_skill >= 0.90 and self.neural_high_skill_streak >= 20
+        )
+        neural_reliability = (
+            state_reliability
+            * calibration_maturity
+            * positive_maturity
+            * calibration_gate
+        )
+        neural_weight = self.neural_guidance_scale * neural_reliability
+        neural_guidance = neural_weight * features.band_belief
         scores = (
             self.values
             + bonus
+            + neural_guidance
             + 0.10 * features.scan_age
             + 0.05 * features.band_uncertainty
         )
         band = int(np.argmax(scores))
+        self._last_track2_probability = float(features.band_belief[band])
         self.last_trace = {
             "mode": "discounted_quality_ucb",
             "selected_band": band,
             "value": float(self.values[band]),
             "exploration_bonus": float(bonus[band]),
+            "track2_band_probability": float(features.band_belief[band]),
+            "neural_guidance_scale": self.neural_guidance_scale,
+            "neural_reliability": neural_reliability,
+            "state_reliability": state_reliability,
+            "online_calibration_maturity": calibration_maturity,
+            "online_calibration_skill": calibration_skill,
+            "online_calibration_gate": calibration_gate,
+            "positive_evidence_maturity": positive_maturity,
+            "high_skill_streak": self.neural_high_skill_streak,
+            "online_brier_error": self.neural_brier_ema,
+            "neural_guidance_weight": neural_weight,
+            "neural_guidance_contribution": float(neural_guidance[band]),
+            "reliability_inputs": {
+                "confirmed_support": support,
+                "mean_quality": quality,
+                "mean_uncertainty": uncertainty,
+                "prediction_error": prediction_error,
+                "belief_sharpness": belief_sharpness,
+            },
             "score": float(scores[band]),
         }
         return band
 
     def update(self, band: int, reward: float, obs_dict: dict | None = None):
-        if self.manage_runtime and obs_dict is not None:
-            self.runtime.update(obs_dict, timestamp=self.timestamp)
         self.timestamp += 1.0
         self.counts *= self.decay
         self.total_observations = self.total_observations * self.decay + 1.0
@@ -802,6 +875,24 @@ class ObservableDiscountedUCBScheduler(BaseScheduler):
         quality = float(
             np.asarray(obs_dict.get("quality", [0.0]), dtype=np.float32).reshape(-1)[0]
         )
+        if self._last_track2_probability is not None:
+            observable_target = float(detected and quality >= 0.40)
+            self.neural_positive_evidence += int(observable_target > 0.5)
+            brier_error = (self._last_track2_probability - observable_target) ** 2
+            self.neural_brier_ema = (
+                0.90 * self.neural_brier_ema + 0.10 * float(brier_error)
+            )
+            self.neural_calibration_evidence += 1
+            updated_skill = float(
+                np.clip(1.0 - self.neural_brier_ema / 0.25, 0.0, 1.0)
+            )
+            self.neural_high_skill_streak = (
+                self.neural_high_skill_streak + 1
+                if updated_skill >= 0.90
+                else 0
+            )
+        if self.manage_runtime:
+            self.runtime.update(obs_dict, timestamp=self.timestamp - 1.0)
         observable_value = (
             float(np.clip(0.10 + 0.90 * quality, 0.0, 1.0))
             if detected

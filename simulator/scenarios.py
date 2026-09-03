@@ -37,6 +37,14 @@ class ScenarioConfig:
     iq_imbalance_max: float = 0.0
     iq_clipping_level: float = 0.0
     switching_penalty: float = 0.0
+    retune_detection_loss: float = 0.0
+    interference_persistence: float = 0.0
+    deceptive_interference_quality: float = 0.0
+    late_entry_fraction: float = 0.0
+    entry_step_fraction_range: tuple[float, float] = (0.0, 0.0)
+    finite_lifetime_fraction: float = 0.0
+    lifetime_fraction_range: tuple[float, float] = (1.0, 1.0)
+    threat_weight_range: tuple[float, float] = (1.0, 1.0)
 
     def __post_init__(self):
         if self.min_emitters < 1 or self.max_emitters < self.min_emitters:
@@ -51,6 +59,11 @@ class ScenarioConfig:
             self.interference_probability,
             self.interference_false_alarm_boost,
             self.sensor_dropout_probability,
+            self.retune_detection_loss,
+            self.interference_persistence,
+            self.deceptive_interference_quality,
+            self.late_entry_fraction,
+            self.finite_lifetime_fraction,
         )
         if any(value < 0.0 or value > 1.0 for value in probabilities):
             raise ValueError("Scenario probabilities must be in [0,1]")
@@ -60,6 +73,14 @@ class ScenarioConfig:
             raise ValueError("Scenario SNR range is invalid")
         if self.period_range[0] < 1 or self.period_range[1] < self.period_range[0]:
             raise ValueError("Scenario period range is invalid")
+        for name, bounds in (
+            ("entry_step_fraction_range", self.entry_step_fraction_range),
+            ("lifetime_fraction_range", self.lifetime_fraction_range),
+        ):
+            if not 0.0 <= bounds[0] <= bounds[1] <= 1.0:
+                raise ValueError(f"{name} must be ordered within [0,1]")
+        if not 0.0 < self.threat_weight_range[0] <= self.threat_weight_range[1]:
+            raise ValueError("Threat weights must be positive and ordered")
 
 
 SCENARIO_PRESETS: dict[str, ScenarioConfig] = {
@@ -160,6 +181,38 @@ SCENARIO_PRESETS: dict[str, ScenarioConfig] = {
         iq_clipping_level=3.5,
         switching_penalty=0.008,
     ),
+    "operational": ScenarioConfig(
+        name="operational",
+        min_emitters=6,
+        max_emitters=14,
+        periodic_fraction=0.30,
+        bursty_fraction=0.40,
+        active_probability_range=(0.10, 0.75),
+        period_range=(3, 25),
+        burst_start_probability=0.04,
+        burst_end_probability=0.35,
+        hop_probability=0.10,
+        behaviour_change_probability=0.025,
+        snr_db_range=(-4.0, 18.0),
+        snr_drift_std=0.9,
+        fading_std_db=2.5,
+        interference_probability=0.15,
+        interference_penalty_db=11.0,
+        interference_false_alarm_boost=0.30,
+        sensor_dropout_probability=0.03,
+        iq_noise_std=0.09,
+        iq_imbalance_max=0.08,
+        iq_clipping_level=3.0,
+        switching_penalty=0.02,
+        retune_detection_loss=0.45,
+        interference_persistence=0.75,
+        deceptive_interference_quality=0.70,
+        late_entry_fraction=0.45,
+        entry_step_fraction_range=(0.15, 0.65),
+        finite_lifetime_fraction=0.25,
+        lifetime_fraction_range=(0.20, 0.55),
+        threat_weight_range=(1.0, 5.0),
+    ),
 }
 
 
@@ -196,6 +249,9 @@ class ScenarioEmitter:
     bands: np.ndarray
     snr_db: np.ndarray
     behaviour_changes: np.ndarray
+    start_step: int = 0
+    end_step: int = 0
+    threat_weight: float = 1.0
 
     def is_active(self, step_idx: int) -> bool:
         return bool(self.activity[int(step_idx)])
@@ -246,6 +302,20 @@ def generate_world(
         bands = np.empty(episode_length, dtype=np.int16)
         snr = np.empty(episode_length, dtype=np.float32)
         changes = np.zeros(episode_length, dtype=bool)
+        start_step = 0
+        if rng.random() < config.late_entry_fraction:
+            start_step = int(
+                rng.uniform(*config.entry_step_fraction_range) * episode_length
+            )
+            start_step = min(start_step, episode_length - 1)
+        end_step = episode_length
+        if rng.random() < config.finite_lifetime_fraction:
+            lifetime = max(
+                1,
+                int(rng.uniform(*config.lifetime_fraction_range) * episode_length),
+            )
+            end_step = min(episode_length, start_step + lifetime)
+        threat_weight = float(rng.uniform(*config.threat_weight_range))
         probability = float(rng.uniform(*config.active_probability_range))
         period = int(rng.integers(config.period_range[0], config.period_range[1] + 1))
         offset = int(rng.integers(period))
@@ -295,6 +365,9 @@ def generate_world(
                 snr[step] = base_snr
             snr[step] += float(rng.normal(0.0, config.fading_std_db))
 
+        activity[:start_step] = False
+        activity[end_step:] = False
+
         emitters.append(
             ScenarioEmitter(
                 id=emitter_id,
@@ -302,13 +375,18 @@ def generate_world(
                 bands=bands,
                 snr_db=snr,
                 behaviour_changes=changes,
+                start_step=start_step,
+                end_step=end_step,
+                threat_weight=threat_weight,
             )
         )
 
-    interference = (
-        rng.random((episode_length, num_bands))
-        < config.interference_probability
-    )
+    interference = np.zeros((episode_length, num_bands), dtype=bool)
+    interference[0] = rng.random(num_bands) < config.interference_probability
+    for step in range(1, episode_length):
+        keep = rng.random(num_bands) < config.interference_persistence
+        fresh = rng.random(num_bands) < config.interference_probability
+        interference[step] = np.where(keep, interference[step - 1], fresh)
     return ScenarioWorld(
         name=config.name,
         emitters=emitters,

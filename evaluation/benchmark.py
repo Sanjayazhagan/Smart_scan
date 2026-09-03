@@ -56,6 +56,13 @@ def evaluate_policy(
     total_switches = 0
     total_sensor_dropouts = 0
     total_interference_observations = 0
+    total_negative_scans = 0
+    total_deceptive_false_alarms = 0
+    total_threat_active_opportunities = 0.0
+    total_threat_interceptions = 0.0
+    total_late_emitters = 0
+    total_late_emitters_discovered = 0
+    all_late_emitter_discovery_delays = []
     regime_counts = {
         "easy": 0,
         "intermediate": 0,
@@ -163,6 +170,7 @@ def evaluate_policy(
         first_active_step = {}
         first_detection_step = {}
         pending_behaviour_changes = {}
+        emitter_start_steps = {}
         terminated = truncated = False
         step_index = 0
 
@@ -219,6 +227,20 @@ def evaluate_policy(
 
             active_emitters = list(info.get("ground_truth_active_emitters", []))
             active_bands = list(info.get("ground_truth_active_bands", []))
+            active_threat_weights = list(
+                info.get(
+                    "ground_truth_active_threat_weights",
+                    [1.0] * len(active_emitters),
+                )
+            )
+            emitter_start_steps.update(
+                {
+                    int(emitter_id): int(start_step)
+                    for emitter_id, start_step in info.get(
+                        "ground_truth_emitter_start_steps", {}
+                    ).items()
+                }
+            )
             for emitter_id in info.get("ground_truth_behaviour_changes", []):
                 pending_behaviour_changes[int(emitter_id)] = step_index
             total_switch_distance += float(info.get("switch_distance", 0.0))
@@ -228,9 +250,13 @@ def evaluate_policy(
             total_interference_observations += int(
                 bool(info.get("interference_present", False))
             )
+            total_deceptive_false_alarms += int(
+                bool(info.get("deceptive_false_alarm", False))
+            )
             if info.get("effective_snr_db") is not None:
                 all_effective_snr_db.append(float(info["effective_snr_db"]))
             total_active_opportunities += len(active_emitters)
+            total_threat_active_opportunities += float(sum(active_threat_weights))
             for emitter_id in active_emitters:
                 first_active_step.setdefault(int(emitter_id), step_index)
 
@@ -238,8 +264,14 @@ def evaluate_policy(
             detected = bool(next_obs["detected"])
             if signal_present and detected:
                 true_positives += 1
-                for emitter_id, band in zip(active_emitters, active_bands, strict=True):
+                for emitter_id, band, threat_weight in zip(
+                    active_emitters,
+                    active_bands,
+                    active_threat_weights,
+                    strict=True,
+                ):
                     if int(band) == action:
+                        total_threat_interceptions += float(threat_weight)
                         first_detection_step.setdefault(int(emitter_id), step_index)
                         emitter_id = int(emitter_id)
                         if emitter_id in pending_behaviour_changes:
@@ -253,6 +285,7 @@ def evaluate_policy(
 
             if not signal_present:
                 total_wasted_scans += 1
+                total_negative_scans += 1
             episode_reward += reward
             total_steps += 1
             step_index += 1
@@ -264,6 +297,18 @@ def evaluate_policy(
         all_discovery_delays.extend(
             first_detection_step[emitter_id] - first_active_step[emitter_id]
             for emitter_id in discovered_ids
+        )
+        late_emitters = {
+            emitter_id
+            for emitter_id in observed_ids
+            if emitter_start_steps.get(emitter_id, 0) > 0
+        }
+        late_discovered = late_emitters.intersection(discovered_ids)
+        total_late_emitters += len(late_emitters)
+        total_late_emitters_discovered += len(late_discovered)
+        all_late_emitter_discovery_delays.extend(
+            first_detection_step[emitter_id] - first_active_step[emitter_id]
+            for emitter_id in late_discovered
         )
         episode_rewards.append(episode_reward)
         episode_true_positives.append(true_positives)
@@ -324,6 +369,12 @@ def evaluate_policy(
         "interception_rate": _safe_ratio(
             total_true_positives, total_active_opportunities
         ),
+        "false_alarm_rate": _safe_ratio(
+            total_false_positives, total_negative_scans
+        ),
+        "threat_weighted_interception_rate": _safe_ratio(
+            total_threat_interceptions, total_threat_active_opportunities
+        ),
         "wasted_scan_ratio": _safe_ratio(total_wasted_scans, total_steps),
         "mean_unique_bands_scanned": float(np.mean(episode_unique_bands)),
         "average_band_revisit_time": float(np.mean(all_revisit_intervals))
@@ -340,6 +391,14 @@ def evaluate_policy(
         "emitter_discovery_rate": _safe_ratio(
             total_discovered_emitters, total_observed_emitters
         ),
+        "late_emitter_discovery_rate": _safe_ratio(
+            total_late_emitters_discovered, total_late_emitters
+        ),
+        "mean_late_emitter_discovery_delay": (
+            float(np.mean(all_late_emitter_discovery_delays))
+            if all_late_emitter_discovery_delays
+            else 0.0
+        ),
         "behaviour_change_adaptation_delay": float(
             np.mean(all_behaviour_change_delays)
         )
@@ -354,6 +413,9 @@ def evaluate_policy(
         "sensor_dropout_ratio": _safe_ratio(total_sensor_dropouts, total_steps),
         "observed_interference_ratio": _safe_ratio(
             total_interference_observations, total_steps
+        ),
+        "deceptive_false_alarm_ratio": _safe_ratio(
+            total_deceptive_false_alarms, total_steps
         ),
         "easy_route_ratio": _safe_ratio(regime_counts["easy"], total_steps),
         "intermediate_route_ratio": _safe_ratio(
@@ -589,6 +651,13 @@ def build_full_scheduler_suite(
         "Observable Discounted UCB": lambda n: ObservableDiscountedUCBScheduler(
             n,
             Track2Runtime(track2_model_path, max_scan_age=max_scan_age),
+            neural_guidance_scale=0.0,
+            manage_runtime=True,
+        ),
+        "Neural-Augmented UCB": lambda n: ObservableDiscountedUCBScheduler(
+            n,
+            Track2Runtime(track2_model_path, max_scan_age=max_scan_age),
+            neural_guidance_scale=0.65,
             manage_runtime=True,
         ),
         "UCB-first Adaptive": lambda n: UCBFirstAdaptiveScheduler(

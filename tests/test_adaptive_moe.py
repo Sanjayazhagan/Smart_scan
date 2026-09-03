@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from scheduler.adaptive_moe import (
     AdaptiveExplorationConfig,
@@ -12,7 +13,7 @@ from scheduler.adaptive_moe import (
     RuleBasedRegimeRouter,
     extract_complexity_features,
 )
-from scheduler.emitter_aware_predictive import CONFIRMED
+from scheduler.emitter_aware_predictive import CONFIRMED, OBSERVATION_QUALITY
 
 
 def global_state(belief=None, uncertainty=0.1, candidate=None):
@@ -227,6 +228,73 @@ def test_standalone_observable_ucb_can_manage_track2_runtime():
     scheduler.update(2, reward=999.0, obs_dict=observation)
 
     assert runtime.updates == [(observation, 0.0)]
+
+
+def test_neural_augmented_ucb_uses_reliable_track2_next_band_belief():
+    runtime = FakeRuntime()
+    runtime.state["band_belief"] = np.full(20, 0.01, dtype=np.float32)
+    runtime.state["band_belief"][7] = 0.90
+    runtime.state["track_features"][0, :20] = runtime.state["band_belief"]
+    runtime.state["track_features"][0, OBSERVATION_QUALITY] = 0.95
+    runtime.state["band_uncertainty"][:] = 0.05
+    scheduler = ObservableDiscountedUCBScheduler(
+        20, runtime, neural_guidance_scale=0.65
+    )
+    scheduler.counts[:] = 1.0
+    scheduler.total_observations = 20.0
+    scheduler.neural_calibration_evidence = 40
+    scheduler.neural_positive_evidence = 20
+    scheduler.neural_high_skill_streak = 20
+    scheduler.neural_brier_ema = 0.01
+
+    assert scheduler.select_band() == 7
+    assert scheduler.last_trace["track2_band_probability"] == pytest.approx(0.90)
+    assert scheduler.last_trace["neural_guidance_contribution"] > 0.0
+
+
+def test_neural_guidance_is_reduced_when_track2_is_unreliable():
+    reliable_runtime = FakeRuntime()
+    unreliable_runtime = FakeRuntime()
+    for runtime in (reliable_runtime, unreliable_runtime):
+        runtime.state["band_belief"] = np.full(20, 0.01, dtype=np.float32)
+        runtime.state["band_belief"][7] = 0.90
+        runtime.state["track_features"][0, :20] = runtime.state["band_belief"]
+        runtime.state["track_features"][0, OBSERVATION_QUALITY] = 0.95
+    reliable_runtime.state["band_uncertainty"][:] = 0.05
+    unreliable_runtime.state["band_uncertainty"][:] = 0.95
+    unreliable_runtime.state["prediction_error"][:] = 0.90
+    reliable = ObservableDiscountedUCBScheduler(20, reliable_runtime)
+    unreliable = ObservableDiscountedUCBScheduler(20, unreliable_runtime)
+    for scheduler in (reliable, unreliable):
+        scheduler.counts[:] = 1.0
+        scheduler.total_observations = 20.0
+        scheduler.neural_calibration_evidence = 40
+        scheduler.neural_positive_evidence = 20
+        scheduler.neural_high_skill_streak = 20
+        scheduler.neural_brier_ema = 0.01
+        scheduler.select_band()
+
+    assert (
+        unreliable.last_trace["neural_guidance_weight"]
+        < reliable.last_trace["neural_guidance_weight"]
+    )
+
+
+def test_neural_guidance_stays_off_for_only_moderately_accurate_forecast():
+    runtime = FakeRuntime()
+    runtime.state["band_belief"][7] = 0.90
+    scheduler = ObservableDiscountedUCBScheduler(20, runtime)
+    scheduler.counts[:] = 1.0
+    scheduler.total_observations = 20.0
+    scheduler.neural_calibration_evidence = 40
+    scheduler.neural_positive_evidence = 20
+    scheduler.neural_high_skill_streak = 20
+    scheduler.neural_brier_ema = 0.10  # Skill 0.60: useful, but not safe enough.
+
+    scheduler.select_band()
+
+    assert scheduler.last_trace["online_calibration_gate"] == 0.0
+    assert scheduler.last_trace["neural_guidance_weight"] == 0.0
 
 
 def test_history_monitor_separates_clean_stationary_and_noisy_observations():

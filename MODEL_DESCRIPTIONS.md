@@ -108,7 +108,11 @@ simulator for historical comparisons.
   MPP-60; ambiguous samples continue through the online router.
   `ObservableDiscountedUCBScheduler` can also run standalone with
   `manage_runtime=True`; in that mode it advances Track 2 itself while still
-  ignoring simulator reward.
+  ignoring simulator reward. Its Neural-Augmented UCB mode fuses Track 2 belief
+  directly into the bandit score. State confidence, online Brier error,
+  calibration maturity, and positive-evidence maturity gate the coefficient.
+  The gate is deliberately strict because the retained hopping diagnostic shows
+  the present GRU is not yet a reliable next-hop predictor.
 - `scheduler/emitter_attention.py`: masked attention pooling of variable
   per-emitter rows into a fixed 288-feature RL state.
 - `scheduler/learned_value.py`: small trainable path-value network that can

@@ -1,9 +1,10 @@
 import pytest
 import numpy as np
 import gymnasium as gym
+from dataclasses import replace
 
 from simulator.environment import SmartScanEnv
-from simulator.scenarios import scenario_names
+from simulator.scenarios import resolve_scenario, scenario_names
 
 def test_observation_space_structure():
     """Test 1: Verify output observation space structure"""
@@ -123,3 +124,37 @@ def test_hopping_scenario_changes_emitter_bands_and_preserves_observation_schema
     assert "interference_present" in info
     assert "switching_cost" in info
     assert "ground_truth_active_bands" not in observation
+
+
+def test_operational_scenario_has_late_finite_life_emitters_and_threat_weights():
+    config = replace(
+        resolve_scenario("operational"),
+        late_entry_fraction=1.0,
+        finite_lifetime_fraction=1.0,
+    )
+    env = SmartScanEnv(seed=8801, scenario=config, episode_length=200)
+    observation, info = env.reset(seed=8801)
+    assert "operational" in scenario_names()
+    assert all(emitter.start_step > 0 for emitter in env.emitters)
+    assert all(emitter.end_step > emitter.start_step for emitter in env.emitters)
+    assert any(emitter.end_step < 200 for emitter in env.emitters)
+    assert all(1.0 <= emitter.threat_weight <= 5.0 for emitter in env.emitters)
+    assert "ground_truth_emitter_start_steps" in info
+    assert "ground_truth_emitter_start_steps" not in observation
+
+
+def test_operational_retuning_reduces_detection_opportunity_without_truth_leak():
+    env = SmartScanEnv(seed=9917, scenario="operational", episode_length=80)
+    env.reset(seed=9917)
+    env.step(0)
+    observation, _, _, _, info = env.step(19)
+    assert info["retune_detection_factor"] < 1.0
+    assert "deceptive_false_alarm" in info
+    assert "retune_detection_factor" not in observation
+    assert set(observation) == {
+        "selected_band",
+        "detected",
+        "signal_power",
+        "quality",
+        "iq",
+    }

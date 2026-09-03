@@ -13,6 +13,11 @@ choose one of 20 receiver bands.
   sustained clean/stationary pattern.
 - **Observable Discounted UCB**, **Adaptive MoE**, and **MPP-60** remain
   standalone benchmark components, not separate dashboard products.
+- **Neural-Augmented UCB** is implemented as a guarded extension. It adds
+  `alpha * Track2 future-band probability` only after at least twenty credible
+  positive observations and an online Brier skill of at least 0.90 sustained
+  for twenty evaluated forecasts. Otherwise its
+  neural weight is exactly zero and it behaves as Observable UCB.
 - **Standard UCB1** remains a simulator benchmark only: it updates from the
   simulator reward, which is not available as ground truth on real hardware.
 - PPO, learned routing/value models, asynchronous planning, NMF, RPCA, and
@@ -83,6 +88,26 @@ The benchmark reports selection time, scheduler update time, full control time,
 reward, detections, false positives, misses, coverage, switching, discovery,
 and routing ratios. Use multiple untouched seeds; a single favorable episode is
 not evidence that one scheduler is universally better.
+
+The direct neural term is intentionally safety-gated. Fresh validation found
+that the current GRU did not improve hopping: its retained held-out diagnostic
+has 0% next-band top-1 accuracy over 34 hopping transitions. An ungated neural
+coefficient therefore reduced reward. Retraining/calibrating Track 2 is required
+before the neural term can be presented as an active performance advantage.
+
+## Operational simulator
+
+The `operational` scenario is the neutral real-world stress test. It adds
+late-arriving and finite-lifetime emitters, persistent deceptive interference,
+non-stationary hopping, unequal hidden threat weights, fading/dropout, receiver
+switching cost, and retuning-related detection loss. All hidden timelines are
+generated before scheduling and are identical for every policy at a given
+seed. Threat labels remain in offline `info` metrics and never enter scheduler
+observations.
+
+In addition to the existing metrics, the benchmark reports false-alarm rate,
+threat-weighted interception rate, late-emitter discovery rate/delay, and the
+deceptive-false-alarm ratio.
 
 ## Evidence retained in the repository
 

@@ -213,6 +213,7 @@ class SmartScanEnv(gym.Env):
         active_emitters: list[int] = []
         true_active_bands: list[int] = []
         active_snr_db: list[float] = []
+        active_threat_weights: list[float] = []
         behaviour_changes: list[int] = []
         for emitter in self.emitters:
             if (
@@ -225,6 +226,7 @@ class SmartScanEnv(gym.Env):
                 true_active_bands.append(emitter.get_band(self.current_step))
                 if self.scenario_name != "legacy":
                     active_snr_db.append(emitter.get_snr_db(self.current_step))
+                    active_threat_weights.append(float(emitter.threat_weight))
         info = {
             "ground_truth_active_emitters": active_emitters,
             "ground_truth_active_bands": true_active_bands,
@@ -233,7 +235,20 @@ class SmartScanEnv(gym.Env):
             info.update(
                 {
                     "ground_truth_active_snr_db": active_snr_db,
+                    "ground_truth_active_threat_weights": active_threat_weights,
                     "ground_truth_behaviour_changes": behaviour_changes,
+                    "ground_truth_emitter_start_steps": {
+                        int(emitter.id): int(emitter.start_step)
+                        for emitter in self.emitters
+                    },
+                    "ground_truth_emitter_end_steps": {
+                        int(emitter.id): int(emitter.end_step)
+                        for emitter in self.emitters
+                    },
+                    "ground_truth_emitter_threat_weights": {
+                        int(emitter.id): float(emitter.threat_weight)
+                        for emitter in self.emitters
+                    },
                     "scenario": self.scenario_name,
                 }
             )
@@ -332,13 +347,22 @@ class SmartScanEnv(gym.Env):
         if signal_present and interference_present:
             effective_snr -= config.interference_penalty_db
 
+        switch_distance = (
+            0.0
+            if self.last_action is None
+            else abs(action - self.last_action) / max(1, self.num_bands - 1)
+        )
+        retune_factor = float(
+            np.clip(1.0 - config.retune_detection_loss * switch_distance, 0.1, 1.0)
+        )
+
         sensor_rng = self._keyed_rng(2101, step, action)
         dropout = bool(sensor_rng.random() < config.sensor_dropout_probability)
         if signal_present:
             snr_factor = 1.0 / (1.0 + np.exp(-effective_snr / 4.0))
             detection_probability = (1.0 - self.miss_prob) * (
                 0.15 + 0.85 * snr_factor
-            )
+            ) * retune_factor
             detected = bool(sensor_rng.random() < detection_probability)
         else:
             detection_probability = float(
@@ -370,7 +394,13 @@ class SmartScanEnv(gym.Env):
             )
         elif detected:
             signal_power = max(0.0, measurement_rng.normal(3.0, 1.0))
-            quality = float(measurement_rng.uniform(0.08, 0.38))
+            if interference_present and config.deceptive_interference_quality > 0.0:
+                centre = config.deceptive_interference_quality
+                quality = float(
+                    np.clip(measurement_rng.normal(centre, 0.10), 0.08, 0.95)
+                )
+            else:
+                quality = float(measurement_rng.uniform(0.08, 0.38))
         else:
             signal_power = float(measurement_rng.exponential(1.0))
             quality = float(measurement_rng.uniform(0.0, 0.20))
@@ -406,11 +436,6 @@ class SmartScanEnv(gym.Env):
             reward = 0.1
         else:
             reward = -1.0
-        switch_distance = (
-            0.0
-            if self.last_action is None
-            else abs(action - self.last_action) / max(1, self.num_bands - 1)
-        )
         switching_cost = config.switching_penalty * switch_distance
         reward -= switching_cost
 
@@ -426,6 +451,10 @@ class SmartScanEnv(gym.Env):
                 else None,
                 "switch_distance": float(switch_distance),
                 "switching_cost": float(switching_cost),
+                "retune_detection_factor": retune_factor,
+                "deceptive_false_alarm": bool(
+                    detected and not signal_present and interference_present
+                ),
             }
         )
         self.last_action = action
