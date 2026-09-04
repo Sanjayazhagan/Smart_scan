@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 import pytest
 from scheduler.dwell_dual_policy_scheduler import DwellDualPolicyScheduler
 
@@ -21,3 +21,15 @@ def test_dwell_dual_policy_scheduler_lifecycle():
     total_decisions = sched.exploit_decisions + sched.explore_decisions + sched.dwell_decisions
     assert total_decisions > 0
     assert sched.dwell_decisions > 0, "Scheduler should exhibit dwell lock-on decisions"
+
+
+def test_smartscan_production_package_export():
+    from scheduler import SmartScanProductionScheduler, DwellDualPolicyScheduler
+    from scheduler.smartscan_production import SmartScanProductionScheduler as ProdClass
+
+    assert SmartScanProductionScheduler is ProdClass
+    assert DwellDualPolicyScheduler is ProdClass
+
+    prod = SmartScanProductionScheduler(num_bands=20)
+    band = prod.select_band()
+    assert 0 <= band < 20
