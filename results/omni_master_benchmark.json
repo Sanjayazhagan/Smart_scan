@@ -1,0 +1,193 @@
+{
+  "timestamp": 1788497918.1316922,
+  "scenarios": [
+    "stationary",
+    "hopping",
+    "changing",
+    "harsh",
+    "operational",
+    "crowded"
+  ],
+  "seeds": [
+    8001,
+    8002,
+    8003,
+    8004,
+    8005
+  ],
+  "steps": 150,
+  "comparison_vs_direct_nmf": {
+    "delta": -1.4470175438596462,
+    "ci_95": [
+      -5.269432306033771,
+      2.375397218314478
+    ]
+  },
+  "models": {
+    "SmartScan-Omni (UNIFIED MASTER)": {
+      "mean_reward": 14.994929824561403,
+      "median_reward": 9.834736842105233,
+      "hit_rate_pct": 11.200000000000001,
+      "mean_switches": 25.1,
+      "mean_latency_ms": 1.6787097119829721,
+      "scenario_means": {
+        "stationary": 36.88000000000001,
+        "hopping": 10.419999999999977,
+        "changing": 18.04826315789474,
+        "harsh": -5.301000000000019,
+        "operational": 5.340631578947373,
+        "crowded": 24.581684210526326
+      }
+    },
+    "Direct NMF (Reigning Champion)": {
+      "mean_reward": 16.44194736842105,
+      "median_reward": 11.34947368421049,
+      "hit_rate_pct": 13.0,
+      "mean_switches": 13.6,
+      "mean_latency_ms": 0.026147955511179235,
+      "scenario_means": {
+        "stationary": 44.72000000000001,
+        "hopping": 15.839999999999986,
+        "changing": 21.05452631578948,
+        "harsh": -6.411684210526333,
+        "operational": 3.9231578947368297,
+        "crowded": 19.52568421052631
+      }
+    },
+    "Dual-Policy Uncertainty": {
+      "mean_reward": 14.008035087719309,
+      "median_reward": 18.208421052631564,
+      "hit_rate_pct": 12.688888888888888,
+      "mean_switches": 106.23333333333333,
+      "mean_latency_ms": 0.12373000044479138,
+      "scenario_means": {
+        "stationary": 23.72000000000003,
+        "hopping": 18.90000000000002,
+        "changing": 19.105736842105273,
+        "harsh": -8.034578947368422,
+        "operational": -1.5250526315789497,
+        "crowded": 31.882105263157904
+      }
+    },
+    "SmartScan V2-NMF (Heuristic)": {
+      "mean_reward": 13.981535087719298,
+      "median_reward": 9.828026315789455,
+      "hit_rate_pct": 11.466666666666667,
+      "mean_switches": 34.96666666666667,
+      "mean_latency_ms": 1.4262304888624284,
+      "scenario_means": {
+        "stationary": 38.88000000000001,
+        "hopping": 10.139999999999997,
+        "changing": 15.644157894736836,
+        "harsh": -9.501789473684225,
+        "operational": 3.7256842105263095,
+        "crowded": 25.00115789473686
+      }
+    },
+    "Static NMF+UCB": {
+      "mean_reward": 13.413614035087727,
+      "median_reward": 14.086447368421034,
+      "hit_rate_pct": 11.822222222222223,
+      "mean_switches": 98.36666666666666,
+      "mean_latency_ms": 1.065254223248404,
+      "scenario_means": {
+        "stationary": 18.660000000000018,
+        "hopping": 19.880000000000017,
+        "changing": 18.9042105263158,
+        "harsh": -5.246526315789476,
+        "operational": -0.5686315789473676,
+        "crowded": 28.852631578947364
+      }
+    },
+    "Dwell-Dual Policy": {
+      "mean_reward": 13.283552631578965,
+      "median_reward": 16.31881578947369,
+      "hit_rate_pct": 12.266666666666666,
+      "mean_switches": 93.73333333333333,
+      "mean_latency_ms": 0.12600002223108378,
+      "scenario_means": {
+        "stationary": 25.74000000000003,
+        "hopping": 20.680000000000053,
+        "changing": 19.937105263157907,
+        "harsh": -7.846631578947371,
+        "operational": -0.4717894736842118,
+        "crowded": 21.662631578947373
+      }
+    },
+    "SmartScan V2-RL (Critic-Only)": {
+      "mean_reward": 12.808166666666661,
+      "median_reward": 8.376315789473663,
+      "hit_rate_pct": 9.911111111111111,
+      "mean_switches": 42.56666666666667,
+      "mean_latency_ms": 1.6885353097588651,
+      "scenario_means": {
+        "stationary": 24.41999999999999,
+        "hopping": 12.219999999999995,
+        "changing": 18.234631578947376,
+        "harsh": -2.8294210526315893,
+        "operational": 5.562736842105259,
+        "crowded": 19.241052631578935
+      }
+    },
+    "Robust PCA + PSR": {
+      "mean_reward": 11.969052631578954,
+      "median_reward": 10.596315789473664,
+      "hit_rate_pct": 8.822222222222221,
+      "mean_switches": 26.066666666666666,
+      "mean_latency_ms": 0.025769289039696257,
+      "scenario_means": {
+        "stationary": 25.020000000000028,
+        "hopping": 15.09999999999998,
+        "changing": 15.374631578947383,
+        "harsh": 0.4350526315789504,
+        "operational": 2.7414736842105234,
+        "crowded": 13.143157894736856
+      }
+    },
+    "SmartScan V2 (UCB-based)": {
+      "mean_reward": 10.311815789473682,
+      "median_reward": 11.297631578947371,
+      "hit_rate_pct": 9.4,
+      "mean_switches": 137.46666666666667,
+      "mean_latency_ms": 1.8705715333473765,
+      "scenario_means": {
+        "stationary": 15.499999999999986,
+        "hopping": 15.080000000000004,
+        "changing": 15.829736842105266,
+        "harsh": -7.109263157894735,
+        "operational": 4.71747368421053,
+        "crowded": 17.852947368421056
+      }
+    },
+    "Whittle Index RMAB": {
+      "mean_reward": 10.027096491228068,
+      "median_reward": 9.342763157894725,
+      "hit_rate_pct": 8.511111111111111,
+      "mean_switches": 126.43333333333334,
+      "mean_latency_ms": 0.043650798266753554,
+      "scenario_means": {
+        "stationary": 14.47999999999999,
+        "hopping": 15.179999999999998,
+        "changing": 12.536894736842106,
+        "harsh": -4.495263157894736,
+        "operational": -0.07178947368420782,
+        "crowded": 22.532736842105273
+      }
+    },
+    "Observable Plain UCB": {
+      "mean_reward": 7.783859649122807,
+      "median_reward": 6.908947368421052,
+      "hit_rate_pct": 7.644444444444444,
+      "mean_switches": 145.83333333333334,
+      "mean_latency_ms": 1.915918176786767,
+      "scenario_means": {
+        "stationary": 11.139999999999995,
+        "hopping": 13.87999999999999,
+        "changing": 12.922736842105262,
+        "harsh": -7.5182105263157855,
+        "operational": -0.2532631578947355,
+        "crowded": 16.531894736842112
+      }
+    }
+  }
+}

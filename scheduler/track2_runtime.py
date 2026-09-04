@@ -326,6 +326,46 @@ class Track2Runtime:
             "mean_uncertainty": float(np.clip(uncertainty.mean(), 0.0, 1.0)),
         }
 
+    def get_investigation_priority(self) -> np.ndarray:
+        """Translates emitter-level anomalies and new candidates into band-level investigation scores."""
+        priority = np.zeros(NUM_BANDS, dtype=np.float32)
+
+        # 1. Confirmed tracks: anomaly weighted by next-band probability
+        for track in self.manager.tracks.values():
+            if not track.confirmed or track.next_probabilities is None:
+                continue
+            anomaly = float(getattr(track, "anomaly_score", 0.0))
+            if anomaly > 0.01:
+                probs = track.next_probabilities[:NUM_BANDS].detach().cpu().numpy().astype(np.float32)
+                priority += anomaly * probs
+
+        # 2. Candidate tracks: temporary confirmation boost on recently observed band
+        for track in self.manager.tracks.values():
+            if track.confirmed or track.observations <= 0:
+                continue
+            last_band = getattr(track, "last_observed_band", None)
+            if last_band is not None and 0 <= last_band < NUM_BANDS:
+                age = max(0.0, self.current_time - track.last_observed_time)
+                decay = np.exp(-age / 5.0)
+                novelty = float(getattr(track, "novelty", 0.5))
+                quality = float(getattr(track, "last_quality", 0.5))
+                confirmation_boost = novelty * quality * decay
+                priority[last_band] += float(confirmation_boost)
+
+        # 3. Disagreement / prediction error signal
+        priority += 0.20 * self.get_prediction_error()
+
+        return np.clip(priority, 0.0, 1.0).astype(np.float32)
+
+    def get_prediction_reliability(self) -> float:
+        """Online calibration metric reflecting world-model forecast reliability in [0, 1]."""
+        if self.update_count < 5:
+            return 0.50
+        mean_err = float(np.mean(self.prediction_error))
+        # High prediction error (> 0.5) drives reliability toward 0
+        reliability = np.clip(1.0 - 1.8 * mean_err, 0.0, 1.0)
+        return float(reliability)
+
     def get_global_belief(self) -> dict:
         belief = build_global_belief_state(
             self.manager, current_time=self.current_time
@@ -339,6 +379,8 @@ class Track2Runtime:
             "band_belief": self.get_band_belief(),
             "scan_age": self.get_scan_age(normalized=True),
             "band_uncertainty": self.get_band_uncertainty(),
+            "investigation_priority": self.get_investigation_priority(),
+            "prediction_reliability": self.get_prediction_reliability(),
             "prediction_error": self.get_prediction_error(),
             "recent_hit": self.get_recent_hit(),
             "recent_miss": self.get_recent_miss(),

@@ -20,11 +20,11 @@ if str(ROOT) not in sys.path:
 
 from simulator.environment import SmartScanEnv
 from scheduler.baselines import BaseScheduler
-from scheduler.ucb_first_adaptive import UCBFirstAdaptiveScheduler
+from scheduler.world_model_ucb import WorldModelUCBScheduler
 
 PORT = 8000
 MODEL_OPTIONS = {
-    "ucb_first_adaptive": "UCB-FIRST ADAPTIVE CONTROLLER",
+    "world_model_ucb": "WORLD-MODEL GUIDED UCB",
 }
 
 class SimulationManager:
@@ -40,21 +40,27 @@ class SimulationManager:
         self.hits = 0
         self.misses = 0
         self.empty_scans = 0
-        self.model_key = "ucb_first_adaptive"
+        self.model_key = "world_model_ucb"
         self.model_display_name = MODEL_OPTIONS[self.model_key]
-        self.reset("stationary", 42, "ucb_first_adaptive")
+        self.reset("stationary", 42, "world_model_ucb")
 
     def reset(
         self,
         scenario: str = "stationary",
         seed: int = 42,
-        model: str = "ucb_first_adaptive",
+        model: str = "world_model_ucb",
     ):
         self.scenario = scenario
         self.seed = seed
         self.model_key = str(model).lower()
-        if self.model_key in {"moe", "adaptive", "observable_ucb", "mpp"}:
-            self.model_key = "ucb_first_adaptive"
+        if self.model_key in {
+            "moe",
+            "adaptive",
+            "ucb_first_adaptive",
+            "observable_ucb",
+            "neural_augmented_ucb",
+        }:
+            self.model_key = "world_model_ucb"
         if self.model_key not in MODEL_OPTIONS:
             raise ValueError(
                 f"Unknown model {model!r}; choose from {sorted(MODEL_OPTIONS)}"
@@ -75,7 +81,7 @@ class SimulationManager:
             scenario=scenario,
         )
 
-        self.scheduler = UCBFirstAdaptiveScheduler(
+        self.scheduler = WorldModelUCBScheduler(
             num_bands=self.num_bands,
             max_scan_age=self.episode_length,
         )
@@ -248,7 +254,7 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == "/api/reset":
             scenario = payload.get("scenario", "stationary")
             seed = int(payload.get("seed", 42))
-            model = payload.get("model", "ucb_first_adaptive")
+            model = payload.get("model", "world_model_ucb")
             try:
                 sim_manager.reset(scenario, seed, model)
             except (ValueError, FileNotFoundError) as error:

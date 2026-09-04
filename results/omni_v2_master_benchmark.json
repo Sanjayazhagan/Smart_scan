@@ -1,0 +1,178 @@
+{
+  "timestamp": 1788498523.1273897,
+  "scenarios": [
+    "stationary",
+    "hopping",
+    "changing",
+    "harsh",
+    "operational",
+    "crowded"
+  ],
+  "seeds": [
+    8001,
+    8002,
+    8003,
+    8004,
+    8005
+  ],
+  "steps": 150,
+  "comparison_vs_direct_nmf": {
+    "delta": 0.0384473684210614,
+    "ci_95": [
+      -4.125669359752128,
+      4.202564096594251
+    ]
+  },
+  "models": {
+    "SmartScan-Omni V2 (RPCA+Debounce)": {
+      "mean_reward": 16.48039473684211,
+      "median_reward": 15.911052631578933,
+      "hit_rate_pct": 12.622222222222224,
+      "mean_switches": 23.333333333333332,
+      "mean_latency_ms": 1.6807382007698632,
+      "scenario_means": {
+        "stationary": 45.54000000000003,
+        "hopping": 15.999999999999995,
+        "changing": 17.697368421052634,
+        "harsh": -3.5822631578947544,
+        "operational": 2.708421052631585,
+        "crowded": 20.51884210526317
+      }
+    },
+    "Direct NMF (Reigning Champion)": {
+      "mean_reward": 16.44194736842105,
+      "median_reward": 11.34947368421049,
+      "hit_rate_pct": 13.0,
+      "mean_switches": 13.6,
+      "mean_latency_ms": 0.018620643764734268,
+      "scenario_means": {
+        "stationary": 44.72000000000001,
+        "hopping": 15.839999999999986,
+        "changing": 21.05452631578948,
+        "harsh": -6.411684210526333,
+        "operational": 3.9231578947368297,
+        "crowded": 19.52568421052631
+      }
+    },
+    "Dual-Policy Uncertainty": {
+      "mean_reward": 14.008035087719309,
+      "median_reward": 18.208421052631564,
+      "hit_rate_pct": 12.688888888888888,
+      "mean_switches": 106.23333333333333,
+      "mean_latency_ms": 0.14218508933360377,
+      "scenario_means": {
+        "stationary": 23.72000000000003,
+        "hopping": 18.90000000000002,
+        "changing": 19.105736842105273,
+        "harsh": -8.034578947368422,
+        "operational": -1.5250526315789497,
+        "crowded": 31.882105263157904
+      }
+    },
+    "SmartScan V2-NMF (Heuristic)": {
+      "mean_reward": 13.981535087719298,
+      "median_reward": 9.828026315789455,
+      "hit_rate_pct": 11.466666666666667,
+      "mean_switches": 34.96666666666667,
+      "mean_latency_ms": 1.698411311643819,
+      "scenario_means": {
+        "stationary": 38.88000000000001,
+        "hopping": 10.139999999999997,
+        "changing": 15.644157894736836,
+        "harsh": -9.501789473684225,
+        "operational": 3.7256842105263095,
+        "crowded": 25.00115789473686
+      }
+    },
+    "Static NMF+UCB": {
+      "mean_reward": 13.413614035087727,
+      "median_reward": 14.086447368421034,
+      "hit_rate_pct": 11.822222222222223,
+      "mean_switches": 98.36666666666666,
+      "mean_latency_ms": 1.3707411349233654,
+      "scenario_means": {
+        "stationary": 18.660000000000018,
+        "hopping": 19.880000000000017,
+        "changing": 18.9042105263158,
+        "harsh": -5.246526315789476,
+        "operational": -0.5686315789473676,
+        "crowded": 28.852631578947364
+      }
+    },
+    "Dwell-Dual Policy": {
+      "mean_reward": 13.283552631578965,
+      "median_reward": 16.31881578947369,
+      "hit_rate_pct": 12.266666666666666,
+      "mean_switches": 93.73333333333333,
+      "mean_latency_ms": 0.17507546679634187,
+      "scenario_means": {
+        "stationary": 25.74000000000003,
+        "hopping": 20.680000000000053,
+        "changing": 19.937105263157907,
+        "harsh": -7.846631578947371,
+        "operational": -0.4717894736842118,
+        "crowded": 21.662631578947373
+      }
+    },
+    "Robust PCA + PSR": {
+      "mean_reward": 11.969052631578954,
+      "median_reward": 10.596315789473664,
+      "hit_rate_pct": 8.822222222222221,
+      "mean_switches": 26.066666666666666,
+      "mean_latency_ms": 0.03133491222332749,
+      "scenario_means": {
+        "stationary": 25.020000000000028,
+        "hopping": 15.09999999999998,
+        "changing": 15.374631578947383,
+        "harsh": 0.4350526315789504,
+        "operational": 2.7414736842105234,
+        "crowded": 13.143157894736856
+      }
+    },
+    "SmartScan V2 (UCB-based)": {
+      "mean_reward": 10.311815789473682,
+      "median_reward": 11.297631578947371,
+      "hit_rate_pct": 9.4,
+      "mean_switches": 137.46666666666667,
+      "mean_latency_ms": 1.8527433099225163,
+      "scenario_means": {
+        "stationary": 15.499999999999986,
+        "hopping": 15.080000000000004,
+        "changing": 15.829736842105266,
+        "harsh": -7.109263157894735,
+        "operational": 4.71747368421053,
+        "crowded": 17.852947368421056
+      }
+    },
+    "Whittle Index RMAB": {
+      "mean_reward": 10.027096491228068,
+      "median_reward": 9.342763157894725,
+      "hit_rate_pct": 8.511111111111111,
+      "mean_switches": 126.43333333333334,
+      "mean_latency_ms": 0.04580311094307237,
+      "scenario_means": {
+        "stationary": 14.47999999999999,
+        "hopping": 15.179999999999998,
+        "changing": 12.536894736842106,
+        "harsh": -4.495263157894736,
+        "operational": -0.07178947368420782,
+        "crowded": 22.532736842105273
+      }
+    },
+    "Observable Plain UCB": {
+      "mean_reward": 7.783859649122807,
+      "median_reward": 6.908947368421052,
+      "hit_rate_pct": 7.644444444444444,
+      "mean_switches": 145.83333333333334,
+      "mean_latency_ms": 1.8453523545888149,
+      "scenario_means": {
+        "stationary": 11.139999999999995,
+        "hopping": 13.87999999999999,
+        "changing": 12.922736842105262,
+        "harsh": -7.5182105263157855,
+        "operational": -0.2532631578947355,
+        "crowded": 16.531894736842112
+      }
+    }
+  }
+}

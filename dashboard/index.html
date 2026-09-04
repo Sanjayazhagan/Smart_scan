@@ -46,7 +46,7 @@
     <div class="flex items-center gap-2.5 flex-wrap">
       <!-- AI Model Selector -->
       <select id="modelSelect" disabled title="Start dashboard/server.py to select a real scheduler" class="bg-[#fffdf9] border-2 border-[#15803d] text-xs font-black rounded px-3 py-1.5 text-[#14532d] focus:outline-none shadow-xs disabled:opacity-60">
-        <option value="ucb_first_adaptive" selected>⚡ UCB-First → Adaptive Escalation</option>
+        <option value="world_model_ucb" selected>⚡ World-Model Guided UCB</option>
       </select>
 
       <select id="scenarioSelect" class="bg-[#fffdf9] border-2 border-[#cfc4b0] text-xs font-bold rounded px-3 py-1.5 text-[#292524] focus:outline-none focus:border-[#b45309]">
@@ -115,10 +115,10 @@
     </div>
   </section>
 
-  <!-- Live MoE Telemetry Strip -->
+  <!-- Live UCB/world-model telemetry strip -->
   <section class="panel-box rounded-lg px-3.5 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
     <div class="flex items-center gap-2">
-      <span class="font-black text-[#57534e] uppercase text-[10px] tracking-wider">Controller Route:</span>
+      <span class="font-black text-[#57534e] uppercase text-[10px] tracking-wider">Decision Mode:</span>
       <span id="expertBadge" class="bg-[#ede7dc] border-2 border-[#cfc4b0] text-[#292524] font-mono font-black px-2.5 py-0.5 rounded text-[10px]">
         INITIALIZING SYSTEM
       </span>
@@ -630,7 +630,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             scenario: scenarioSelect.value,
-            model: modelSelect ? modelSelect.value : 'ucb_first_adaptive',
+            model: modelSelect ? modelSelect.value : 'world_model_ucb',
             seed: 42
           })
         });

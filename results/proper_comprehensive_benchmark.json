@@ -1,0 +1,280 @@
+{
+  "timestamp": 1788508205.4179263,
+  "scenarios": [
+    "stationary",
+    "hopping",
+    "changing",
+    "harsh",
+    "operational",
+    "crowded"
+  ],
+  "seeds": [
+    9001,
+    9002,
+    9003,
+    9004,
+    9005,
+    9006,
+    9007,
+    9008,
+    9009,
+    9010
+  ],
+  "steps": 150,
+  "total_episodes": 720,
+  "total_decisions": 108000,
+  "models": {
+    "SmartScan-Omni V2": {
+      "mean_reward": 13.70020614035088,
+      "median_reward": 12.399999999999986,
+      "ci_95": [
+        10.372929684178608,
+        17.027482596523154
+      ],
+      "hit_rate_pct": 11.166666666666666,
+      "mean_switches": 22.666666666666668,
+      "mean_switch_dist": 6.1359649122807,
+      "mean_latency_ms": 1.8861922778499622,
+      "p99_latency_ms": 7.542607039213183,
+      "scenario_means": {
+        "stationary": 26.640000000000025,
+        "hopping": 18.46,
+        "changing": 17.375631578947377,
+        "harsh": -0.06644736842105817,
+        "operational": 5.490736842105262,
+        "crowded": 14.301315789473687
+      }
+    },
+    "Direct NMF": {
+      "mean_reward": 16.0456052631579,
+      "median_reward": 12.49223684210523,
+      "ci_95": [
+        10.910575352303365,
+        21.180635174012433
+      ],
+      "hit_rate_pct": 14.08888888888889,
+      "mean_switches": 10.15,
+      "mean_switch_dist": 0.8736842105263156,
+      "mean_latency_ms": 0.012448621745635238,
+      "p99_latency_ms": 0.028699986869469285,
+      "scenario_means": {
+        "stationary": 52.29000000000004,
+        "hopping": 15.879999999999992,
+        "changing": 12.78521052631578,
+        "harsh": -1.2707368421052696,
+        "operational": -1.034736842105275,
+        "crowded": 17.623894736842114
+      }
+    },
+    "Dual-Policy Uncertainty": {
+      "mean_reward": 17.652526315789487,
+      "median_reward": 18.993947368421058,
+      "ci_95": [
+        13.573422354432635,
+        21.731630277146337
+      ],
+      "hit_rate_pct": 15.1,
+      "mean_switches": 103.5,
+      "mean_switch_dist": 19.14999999999999,
+      "mean_latency_ms": 0.13585648965090513,
+      "p99_latency_ms": 0.25711109396070264,
+      "scenario_means": {
+        "stationary": 34.95000000000006,
+        "hopping": 20.570000000000018,
+        "changing": 24.199131578947377,
+        "harsh": -1.803500000000001,
+        "operational": 1.2683157894736872,
+        "crowded": 26.7312105263158
+      }
+    },
+    "SmartScan V2-NMF": {
+      "mean_reward": 18.038688596491234,
+      "median_reward": 15.598421052631565,
+      "ci_95": [
+        12.732404497867357,
+        23.34497269511511
+      ],
+      "hit_rate_pct": 14.544444444444443,
+      "mean_switches": 50.63333333333333,
+      "mean_switch_dist": 13.363157894736837,
+      "mean_latency_ms": 1.9029381665556382,
+      "p99_latency_ms": 4.9948369630146825,
+      "scenario_means": {
+        "stationary": 46.30000000000001,
+        "hopping": 19.01000000000001,
+        "changing": 19.869342105263165,
+        "harsh": 2.2873157894736726,
+        "operational": 0.8040000000000065,
+        "crowded": 19.961473684210524
+      }
+    },
+    "Static NMF+UCB": {
+      "mean_reward": 16.878232456140367,
+      "median_reward": 17.802236842105255,
+      "ci_95": [
+        12.720389816966172,
+        21.036075095314562
+      ],
+      "hit_rate_pct": 15.0,
+      "mean_switches": 98.13333333333334,
+      "mean_switch_dist": 18.92456140350877,
+      "mean_latency_ms": 1.3464161335076723,
+      "p99_latency_ms": 4.187274986179547,
+      "scenario_means": {
+        "stationary": 28.040000000000042,
+        "hopping": 22.550000000000026,
+        "changing": 26.934552631578963,
+        "harsh": -0.4608947368421106,
+        "operational": -2.5607368421052628,
+        "crowded": 26.76647368421053
+      }
+    },
+    "Dwell-Dual Policy": {
+      "mean_reward": 19.295495614035097,
+      "median_reward": 20.164736842105256,
+      "ci_95": [
+        15.255717669302163,
+        23.33527355876803
+      ],
+      "hit_rate_pct": 16.933333333333334,
+      "mean_switches": 88.6,
+      "mean_switch_dist": 13.642982456140345,
+      "mean_latency_ms": 0.1468551895943367,
+      "p99_latency_ms": 0.27380098938010633,
+      "scenario_means": {
+        "stationary": 35.81000000000004,
+        "hopping": 24.500000000000014,
+        "changing": 23.90757894736843,
+        "harsh": 0.874131578947364,
+        "operational": 3.0293684210526313,
+        "crowded": 27.65189473684211
+      }
+    },
+    "Robust PCA + PSR": {
+      "mean_reward": 17.20304385964914,
+      "median_reward": 14.443026315789439,
+      "ci_95": [
+        12.748767492251257,
+        21.65732022704702
+      ],
+      "hit_rate_pct": 12.88888888888889,
+      "mean_switches": 29.066666666666666,
+      "mean_switch_dist": 2.881578947368421,
+      "mean_latency_ms": 0.017312656725860305,
+      "p99_latency_ms": 0.041599967516958714,
+      "scenario_means": {
+        "stationary": 36.18000000000005,
+        "hopping": 18.540000000000028,
+        "changing": 17.55050000000001,
+        "harsh": 1.2971842105263127,
+        "operational": 3.3687368421052604,
+        "crowded": 26.281842105263184
+      }
+    },
+    "SmartScan V2 (UCB-based)": {
+      "mean_reward": 15.126618421052639,
+      "median_reward": 17.617368421052618,
+      "ci_95": [
+        11.601609722884826,
+        18.65162711922045
+      ],
+      "hit_rate_pct": 12.855555555555556,
+      "mean_switches": 133.96666666666667,
+      "mean_switch_dist": 30.226315789473684,
+      "mean_latency_ms": 1.9725807779080544,
+      "p99_latency_ms": 5.554757921490822,
+      "scenario_means": {
+        "stationary": 26.81000000000003,
+        "hopping": 23.300000000000026,
+        "changing": 20.70234210526316,
+        "harsh": -2.716736842105262,
+        "operational": -0.25094736842105053,
+        "crowded": 22.915052631578938
+      }
+    },
+    "Whittle Index RMAB": {
+      "mean_reward": 13.857460526315789,
+      "median_reward": 15.4578947368421,
+      "ci_95": [
+        10.577337126689137,
+        17.13758392594244
+      ],
+      "hit_rate_pct": 12.633333333333333,
+      "mean_switches": 120.35,
+      "mean_switch_dist": 20.7359649122807,
+      "mean_latency_ms": 0.02691515546757728,
+      "p99_latency_ms": 0.06540103233419362,
+      "scenario_means": {
+        "stationary": 22.170000000000023,
+        "hopping": 16.819999999999986,
+        "changing": 22.065578947368415,
+        "harsh": -1.477763157894738,
+        "operational": 1.6294736842105269,
+        "crowded": 21.93747368421052
+      }
+    },
+    "Fixed Sequential Sweep": {
+      "mean_reward": 8.986052631578945,
+      "median_reward": 8.913815789473674,
+      "ci_95": [
+        6.836549881122028,
+        11.13555538203586
+      ],
+      "hit_rate_pct": 8.155555555555557,
+      "mean_switches": 149.0,
+      "mean_switch_dist": 14.473684210526285,
+      "mean_latency_ms": 0.00030813319608569145,
+      "p99_latency_ms": 0.000800006091594696,
+      "scenario_means": {
+        "stationary": 13.01,
+        "hopping": 14.30999999999998,
+        "changing": 14.777631578947375,
+        "harsh": -1.3371052631578892,
+        "operational": 1.070526315789478,
+        "crowded": 12.085263157894722
+      }
+    },
+    "Observable Plain UCB": {
+      "mean_reward": 13.087877192982457,
+      "median_reward": 16.49447368421052,
+      "ci_95": [
+        9.80349219460274,
+        16.372262191362175
+      ],
+      "hit_rate_pct": 10.766666666666666,
+      "mean_switches": 143.53333333333333,
+      "mean_switch_dist": 34.86403508771931,
+      "mean_latency_ms": 1.932644788822573,
+      "p99_latency_ms": 5.28403195552528,
+      "scenario_means": {
+        "stationary": 25.030000000000015,
+        "hopping": 19.190000000000005,
+        "changing": 21.90686842105263,
+        "harsh": -3.8551842105263163,
+        "operational": -0.7477894736842089,
+        "crowded": 17.003368421052627
+      }
+    },
+    "Random Scan": {
+      "mean_reward": 10.564649122807019,
+      "median_reward": 11.428421052631563,
+      "ci_95": [
+        8.050854100941251,
+        13.078444144672787
+      ],
+      "hit_rate_pct": 8.633333333333333,
+      "mean_switches": 139.4,
+      "mean_switch_dist": 49.842105263157904,
+      "mean_latency_ms": 0.0023267337172809574,
+      "p99_latency_ms": 0.006099931197240949,
+      "scenario_means": {
+        "stationary": 18.32,
+        "hopping": 17.5,
+        "changing": 14.69078947368421,
+        "harsh": -3.177631578947369,
+        "operational": 1.9831578947368425,
+        "crowded": 14.071578947368423
+      }
+    }
+  }
+}

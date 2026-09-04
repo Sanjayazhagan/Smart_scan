@@ -157,6 +157,29 @@ class EmitterStateWorldModel(nn.Module):
         )
         return z_state.squeeze(0), probabilities.squeeze(0), new_hidden
 
+    def forward(
+        self,
+        iq_seq: torch.Tensor,
+        band_seq: torch.Tensor,
+        quality_seq: torch.Tensor,
+        delta_t_seq: torch.Tensor,
+        hidden: torch.Tensor | None = None,
+    ):
+        B, L, C, N = iq_seq.shape
+        iq_flat = iq_seq.reshape(B * L, C, N)
+        z_state = self.encode_state(iq_flat).reshape(B, L, -1)
+        band_features = self.band_embedding(band_seq)
+        if quality_seq.ndim == 2:
+            quality_seq = quality_seq.unsqueeze(-1)
+        if delta_t_seq.ndim == 2:
+            delta_t_seq = delta_t_seq.unsqueeze(-1)
+        gru_input = torch.cat(
+            [z_state, band_features, quality_seq, delta_t_seq], dim=-1
+        )
+        gru_output, new_hidden = self.gru(gru_input, hidden)
+        logits = self.prediction_head(gru_output[:, -1, :])
+        return logits, z_state, new_hidden
+
 
 @dataclass
 class EmitterTrack:

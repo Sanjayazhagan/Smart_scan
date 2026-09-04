@@ -7,11 +7,11 @@ choose one of 20 receiver bands.
 
 ## Current model status
 
-- **UCB-first Adaptive** is the single product-facing controller. Observable
-  discounted UCB makes the normal decision. It escalates to Adaptive MoE's
-  belief-tree specialist only after the observation history establishes a
-  sustained clean/stationary pattern.
-- **Observable Discounted UCB**, **Adaptive MoE**, and **MPP-60** remain
+- **World-Model UCB** is the single product-facing controller. Discounted UCB
+  balances exploitation, exploration, recency, and uncertainty. Track 2's
+  predicted next-band probability directly augments the UCB score only after
+  observable online calibration proves that the forecast is reliable.
+- **Observable Discounted UCB**, the retired **Adaptive MoE**, and **MPP-60** remain
   standalone benchmark components, not separate dashboard products.
 - **Neural-Augmented UCB** is implemented as a guarded extension. It adds
   `alpha * Track2 future-band probability` only after at least twenty credible
@@ -31,16 +31,16 @@ There is currently no claim of industry superiority or real-hardware readiness.
 
 ```text
 I/Q observation [2, 512]
-  -> frozen identity CNN + spectrogram state encoder
+  -> identity CNN + spectrogram state encoder
   -> per-emitter GRU and persistent TrackManager
-  -> observable belief[20] + scan age[20] + uncertainty[20]
-  -> Observable UCB primary path
-       -> sustained clean/stationary evidence? Adaptive belief tree : UCB
-  -> next receiver band
+  -> future-band belief[20] + scan age[20] + uncertainty[20]
+  -> discounted UCB value + exploration + recency
+  -> calibrated reliability gate * Track 2 future-band belief
+  -> one World-Model UCB score -> next receiver band
 ```
 
 Simulator ground truth is confined to Gymnasium's `info` dictionary and offline
-metrics. It is not passed into Track 2 or Adaptive MoE.
+metrics. It is not passed into Track 2 or World-Model UCB.
 
 ## External artifacts
 
@@ -67,9 +67,10 @@ python -m pytest -q
 .\.venv\Scripts\python.exe dashboard\server.py
 ```
 
-Open `http://localhost:8000`. The dashboard exposes only the UCB-first Adaptive
-controller. If the Python backend is unavailable, the page clearly labels
-itself as a client visual demo.
+Open `http://localhost:8000`. The dashboard exposes only World-Model UCB. There
+is no MoE router or tree-planner escalation in the product decision path. If
+the Python backend is unavailable, the page clearly labels itself as a client
+visual demo.
 
 ## Core benchmark
 
@@ -80,7 +81,7 @@ PPO policy files are no longer required when testing core schedulers:
   --warmup-steps 80 --episode-length 200 --episodes 2 `
   --seeds 12001 12011 12021 `
   --scenarios stationary hopping changing harsh `
-  --only "Observable Discounted UCB" "UCB-first Adaptive" `
+  --only "Observable Discounted UCB" "World-Model UCB" `
   --output results\current_validation.json
 ```
 
@@ -111,10 +112,9 @@ deceptive-false-alarm ratio.
 
 ## Evidence retained in the repository
 
-- `ucb_first_stationary_gate_validation.json`: fresh-seed paired validation of
-  UCB-first Adaptive against standalone Observable Discounted UCB. Across seven
-  scenarios it scored 19.198 versus 18.055 (+6.3%); the gain was concentrated
-  in stationary and bursty worlds and is not evidence of universal superiority.
+- `NEURAL_UCB_RIGOROUS_RESULTS.md`: retained comparison showing why the current
+  Track 2 forecast remains safety-gated. Retraining is required before claiming
+  a performance advantage over the UCB-only fallback.
 
 - `results/warmup_heldout_validation.json`: held-out warm-up evaluation.
 - `results/track2_heldout_diagnostic.json`: scheduler-independent Track 2
@@ -127,10 +127,7 @@ deceptive-false-alarm ratio.
 
 - No SDR or over-the-air validation.
 - The simulator does not yet model every deceptive/jamming waveform.
-- MPP deeper steps approximate future belief instead of rolling the GRU through
-  genuine future I/Q.
 - Track 2 identity and next-band prediction require broader held-out hardware
   data.
-- The fresh validation improvement is not statistically conclusive: the paired
-  95% interval crosses zero, and planning latency averaged 7.05 ms versus
-  2.33 ms for standalone Observable UCB.
+- The present held-out hopping diagnostic found 0% next-band top-1 accuracy over
+  34 transitions, so the world-model coefficient currently remains zero.

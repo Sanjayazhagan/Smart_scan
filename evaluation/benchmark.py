@@ -11,6 +11,27 @@ def _safe_ratio(numerator: float, denominator: float) -> float:
     return float(numerator / denominator) if denominator else 0.0
 
 
+def _inject_evaluation_oracle(env, scheduler) -> None:
+    """Inject imminent hidden activity only into an evaluation-only scheduler."""
+    setter = getattr(scheduler, "set_oracle_activity", None)
+    if not callable(setter):
+        return
+    if not bool(getattr(scheduler, "evaluation_only", False)):
+        raise RuntimeError("A non-evaluation scheduler requested hidden oracle truth")
+    base_env = env.unwrapped
+    world = getattr(base_env, "world", None)
+    if world is None:
+        raise ValueError(
+            "Oracle-UCB requires a pre-generated deterministic scenario, not legacy"
+        )
+    step = int(base_env.current_step)
+    activity = np.zeros(base_env.num_bands, dtype=np.float32)
+    for emitter in world.emitters:
+        if emitter.is_active(step):
+            activity[emitter.get_band(step)] = 1.0
+    setter(activity)
+
+
 def evaluate_policy(
     env_fn: Callable,
     scheduler_fn: Callable,
@@ -175,6 +196,7 @@ def evaluate_policy(
         step_index = 0
 
         while not (terminated or truncated):
+            _inject_evaluation_oracle(env, scheduler)
             planning_started = perf_counter()
             action = int(scheduler.select_band())
             all_planning_times.append(perf_counter() - planning_started)
@@ -591,7 +613,15 @@ def build_full_scheduler_suite(
     from scheduler.learned_value import LearnedValueEmitterPlanner, SmallPathValueModel
     from scheduler.model_predictive import ModelPredictiveScheduler
     from scheduler.track2_runtime import Track2Runtime
-    from scheduler.ucb_first_adaptive import UCBFirstAdaptiveScheduler
+    from scheduler.world_model_ucb import WorldModelUCBScheduler
+    from scheduler.world_model_nmf_ucb import WorldModelNMFUCBScheduler
+    from scheduler.world_model_aux_ucb import WorldModelAuxUCBScheduler
+    from scheduler.lean_observable_moe import LeanObservableMoEScheduler
+    from scheduler.calibrated_soft_moe import (
+        CalibratedSoftMoEScheduler,
+        CalibratedWorldNMFUCBScheduler,
+    )
+    from evaluation.oracle_ucb import OracleGuidedUCBScheduler
 
     if track2_model_path is None:
         from scheduler.track2_runtime import DEFAULT_MODEL_PATH
@@ -660,10 +690,96 @@ def build_full_scheduler_suite(
             neural_guidance_scale=0.65,
             manage_runtime=True,
         ),
-        "UCB-first Adaptive": lambda n: UCBFirstAdaptiveScheduler(
+        "World-Model UCB": lambda n: WorldModelUCBScheduler(
             n,
             model_path=track2_model_path,
             max_scan_age=max_scan_age,
+        ),
+        "World+NMF UCB[0.25]": lambda n: WorldModelNMFUCBScheduler(
+            n,
+            model_path=track2_model_path,
+            max_scan_age=max_scan_age,
+            nmf_scale=0.25,
+        ),
+        "World+NMF UCB[0.50]": lambda n: WorldModelNMFUCBScheduler(
+            n,
+            model_path=track2_model_path,
+            max_scan_age=max_scan_age,
+            nmf_scale=0.50,
+        ),
+        "World+NMF UCB[1.00]": lambda n: WorldModelNMFUCBScheduler(
+            n,
+            model_path=track2_model_path,
+            max_scan_age=max_scan_age,
+            nmf_scale=1.00,
+        ),
+        "World+RPCA UCB[0.50]": lambda n: WorldModelAuxUCBScheduler(
+            n, auxiliary="rpca", auxiliary_scale=0.50, seed=seed,
+            model_path=track2_model_path, max_scan_age=max_scan_age,
+        ),
+        "World+RPCA UCB[1.00]": lambda n: WorldModelAuxUCBScheduler(
+            n, auxiliary="rpca", auxiliary_scale=1.00, seed=seed,
+            model_path=track2_model_path, max_scan_age=max_scan_age,
+        ),
+        "World+PRI UCB[0.50]": lambda n: WorldModelAuxUCBScheduler(
+            n, auxiliary="pri", auxiliary_scale=0.50, seed=seed,
+            model_path=track2_model_path, max_scan_age=max_scan_age,
+        ),
+        "World+PRI UCB[1.00]": lambda n: WorldModelAuxUCBScheduler(
+            n, auxiliary="pri", auxiliary_scale=1.00, seed=seed,
+            model_path=track2_model_path, max_scan_age=max_scan_age,
+        ),
+        "World+Exp3 UCB[0.50]": lambda n: WorldModelAuxUCBScheduler(
+            n, auxiliary="exp3", auxiliary_scale=0.50, seed=seed,
+            model_path=track2_model_path, max_scan_age=max_scan_age,
+        ),
+        "World+Exp3 UCB[1.00]": lambda n: WorldModelAuxUCBScheduler(
+            n, auxiliary="exp3", auxiliary_scale=1.00, seed=seed,
+            model_path=track2_model_path, max_scan_age=max_scan_age,
+        ),
+        "Lean Observable MoE": lambda n: LeanObservableMoEScheduler(
+            n, model_path=track2_model_path, max_scan_age=max_scan_age, seed=seed
+        ),
+        "NMF+UCB[world off]": lambda n: WorldModelNMFUCBScheduler(
+            n, model_path=track2_model_path, max_scan_age=max_scan_age,
+            nmf_scale=1.0, world_model_scale=0.0,
+        ),
+        "NMF+UCB[world calibrated]": lambda n: CalibratedWorldNMFUCBScheduler(
+            n, model_path=track2_model_path, max_scan_age=max_scan_age,
+            nmf_scale=1.0, world_model_scale=0.35,
+        ),
+        "Calibrated Soft MoE[T0.35]": lambda n: CalibratedSoftMoEScheduler(
+            n, model_path=track2_model_path, max_scan_age=max_scan_age, seed=seed,
+            router_temperature=0.35,
+        ),
+        "Calibrated Soft MoE[T0.55]": lambda n: CalibratedSoftMoEScheduler(
+            n, model_path=track2_model_path, max_scan_age=max_scan_age, seed=seed,
+            router_temperature=0.55,
+        ),
+        "Calibrated Soft MoE[T0.85]": lambda n: CalibratedSoftMoEScheduler(
+            n, model_path=track2_model_path, max_scan_age=max_scan_age, seed=seed,
+            router_temperature=0.85,
+        ),
+        "World-Model UCB[off]": lambda n: WorldModelUCBScheduler(
+            n,
+            model_path=track2_model_path,
+            max_scan_age=max_scan_age,
+            world_model_scale=0.0,
+        ),
+        "Oracle-UCB[0.10]": lambda n: OracleGuidedUCBScheduler(
+            n, oracle_scale=0.10, model_path=track2_model_path, max_scan_age=max_scan_age
+        ),
+        "Oracle-UCB[0.25]": lambda n: OracleGuidedUCBScheduler(
+            n, oracle_scale=0.25, model_path=track2_model_path, max_scan_age=max_scan_age
+        ),
+        "Oracle-UCB[0.50]": lambda n: OracleGuidedUCBScheduler(
+            n, oracle_scale=0.50, model_path=track2_model_path, max_scan_age=max_scan_age
+        ),
+        "Oracle-UCB[1.00]": lambda n: OracleGuidedUCBScheduler(
+            n, oracle_scale=1.00, model_path=track2_model_path, max_scan_age=max_scan_age
+        ),
+        "Oracle-UCB[2.00]": lambda n: OracleGuidedUCBScheduler(
+            n, oracle_scale=2.00, model_path=track2_model_path, max_scan_age=max_scan_age
         ),
         "MPP-BeliefOnly": lambda n: BeliefOnlyModelPredictiveScheduler(
             n, model_path=track2_model_path, max_scan_age=max_scan_age

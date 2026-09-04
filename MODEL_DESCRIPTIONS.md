@@ -71,13 +71,14 @@ simulator for historical comparisons.
 
 ## Scheduling approaches
 
-- `scheduler/ucb_first_adaptive.py`: the sole product-facing controller.
-  Observable discounted UCB is always warm and handles the ordinary path.
-  Only sustained clean/stationary evidence from the 80-scan observation
-  monitor enables the Adaptive MoE belief-tree specialist. Earlier broad
-  complexity/noise escalation was rejected because held-out ablation made it
-  slower and slightly worse overall. Routing never uses scenario labels,
-  simulator reward, or hidden emitter truth.
+- `scheduler/world_model_ucb.py`: the sole product-facing controller. A single
+  discounted UCB score combines observation-derived value, an exploration
+  bonus, band recency, uncertainty, and a reliability-weighted Track 2
+  future-band probability. Online Brier skill, forecast count, positive
+  outcomes, confirmed-track quality, uncertainty, and prediction error gate
+  the world-model coefficient. If the model is unreliable, the coefficient is
+  exactly zero and the same controller safely behaves as ordinary observable
+  UCB. There is no expert router or belief-tree escalation.
 
 - `scheduler/baselines.py`: sequential, random, standard UCB1, and Thompson
   Sampling. Standard UCB1 updates from simulator reward and is an offline
@@ -138,6 +139,6 @@ also remains a prototype. The v2 learned router is substantially better
 balanced than v1 but loses reward and discovery to the rule router on held-out
 seeds, so it remains an optional speed-oriented experiment.
 
-The active dashboard intentionally exposes only UCB-first Adaptive. Standalone
-Observable Discounted UCB, Adaptive MoE, MPP-60, and all other schedulers remain
-benchmark/research components rather than separate advertised products.
+The active dashboard intentionally exposes only World-Model UCB. The retired
+Adaptive MoE, planners, RL agents, and other schedulers remain historical
+benchmark/research components rather than advertised products.

@@ -2,6 +2,7 @@ import pytest
 from simulator.environment import SmartScanEnv
 from scheduler.baselines import FixedScheduler, RandomScheduler
 from evaluation.benchmark import evaluate_policy, run_benchmark
+from evaluation.oracle_ucb import OracleGuidedUCBScheduler
 
 def test_evaluate_policy_determinism():
     """Verify that identical seeds produce identical evaluation metrics."""
@@ -72,3 +73,30 @@ def test_evaluate_policy_keeps_state_across_unscored_warmup():
     assert result["calibration_enough_evidence_ratio"] == 0.0
     assert result["calibration_noisy_score"] == 0.0
     assert result["calibrated_noisy_episode_ratio"] == 0.0
+
+
+def test_oracle_ucb_receives_imminent_activity_only_in_benchmark():
+    def env_fn(seed):
+        return SmartScanEnv(
+            num_bands=20,
+            episode_length=45,
+            seed=seed,
+            scenario="stationary",
+        )
+
+    result = evaluate_policy(
+        env_fn,
+        lambda n: OracleGuidedUCBScheduler(n, oracle_scale=1.0),
+        seed=919,
+        episodes=1,
+        warmup_steps=20,
+    )
+
+    assert result["scored_steps"] == 25
+    assert 0 <= result["mean_true_positives"] <= 25
+
+
+def test_oracle_ucb_refuses_to_run_without_benchmark_truth():
+    scheduler = OracleGuidedUCBScheduler(20)
+    with pytest.raises(RuntimeError, match="not injected"):
+        scheduler.select_band()
