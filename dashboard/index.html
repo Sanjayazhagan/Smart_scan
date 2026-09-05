@@ -107,8 +107,8 @@
         <span class="text-[9px] font-black text-[#15803d] bg-[#dcfce7] border border-[#86efac] px-1.5 py-0.2 rounded">Found / Emitted</span>
       </div>
       <div class="flex items-baseline gap-1.5 mt-0.5">
-        <span class="font-mono font-black text-2xl text-[#15803d]" id="lblHitRate">85.7%</span>
-        <span class="text-xs font-bold text-[#8c532b]" id="lblHitRatio">(18 / 21 signals)</span>
+        <span class="font-mono font-black text-2xl text-[#15803d]" id="lblHitRate">0.0%</span>
+        <span class="text-xs font-bold text-[#8c532b]" id="lblHitRatio">(0 / 0 signals)</span>
       </div>
     </div>
 
@@ -131,8 +131,8 @@
         <span class="w-2.5 h-2.5 rounded-full bg-[#d97706] animate-ping"></span>
       </div>
       <div class="flex items-baseline gap-1.5 mt-0.5">
-        <span class="font-mono font-black text-xl text-[#92400e]" id="lblCurrentBand">Channel 00</span>
-        <span class="text-[10px] font-black text-[#b45309] truncate" id="lblStatus">Listening</span>
+        <span class="font-mono font-black text-xl text-[#92400e]" id="lblCurrentBand">Channel --</span>
+        <span class="text-[10px] font-black text-[#8c532b] truncate" id="lblStatus">Standby</span>
       </div>
     </div>
 
@@ -226,9 +226,10 @@
     let currentRevision = 0;
 
     // Metrics
+    let isStepping = false;
     let totalScore = 0.0;
-    let signalsFound = 18;
-    let totalSignals = 21;
+    let signalsFound = 0;
+    let totalSignals = 0;
     let totalSwitches = 0;
     let currentTunedBand = null;
     let lastDetected = false;
@@ -361,31 +362,47 @@
       drawWaterfall();
     }
 
-    async function advanceStep() {
+    async function advanceStep(isManual = false) {
       if (step >= MAX_STEPS) {
         pause();
         return;
       }
+      if (!isRunning && !isManual) return;
+      if (isStepping) return;
+      isStepping = true;
+      const curRev = currentRevision;
 
-      if (backendActive) {
-        try {
-          const res = await fetch('/api/step', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ revision: currentRevision }),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            applySnapshot(data);
-            return;
+      try {
+        if (backendActive) {
+          try {
+            const res = await fetch('/api/step', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ revision: curRev }),
+            });
+            // If simulation was reset or paused while fetch was in flight, discard!
+            if ((!isRunning && step === 0 && !isManual) || curRev !== currentRevision) {
+              return;
+            }
+            if (res.ok) {
+              const data = await res.json();
+              if (data.revision === currentRevision && (isRunning || isManual)) {
+                applySnapshot(data);
+              }
+              return;
+            }
+          } catch (err) {
+            backendActive = false;
           }
-        } catch (err) {
-          backendActive = false;
         }
-      }
 
-      // Fallback
-      executeClientStep();
+        // Fallback simulator
+        if (isRunning || isManual) {
+          executeClientStep();
+        }
+      } finally {
+        isStepping = false;
+      }
     }
 
     function executeClientStep() {
@@ -478,7 +495,7 @@
       totalScore = d.total_score;
       currentTunedBand = d.current_band;
       lastDetected = d.detected;
-      currentPowers = d.powers || new Array(BANDS).fill(0.04);
+      currentPowers = d.powers || new Array(BANDS).fill(0.0);
       activeBandsList = d.active_bands || [];
 
       // RESET / REFRESH HIT: When the scanner checks current_band:
@@ -490,11 +507,14 @@
         } else {
           bandHitExpiry[d.current_band] = 0; // RESET HIT!
         }
+      } else {
+        // Reset state: clear all band hit expirations
+        bandHitExpiry.fill(0);
       }
 
       // Update KPI Cards
-      const rateVal = (d.interception_rate !== undefined) ? d.interception_rate : 85.0;
-      lblHitRate.innerText = `${rateVal.toFixed(1)}%`;
+      const rateVal = (d.interception_rate !== undefined) ? d.interception_rate : 0.0;
+      lblHitRate.innerText = (d.total_signals > 0) ? `${rateVal.toFixed(1)}%` : '0.0%';
       lblHitRatio.innerText = `(${d.signals_found || 0} / ${d.total_signals || 0} signals)`;
 
       lblLatency.innerText = `${(d.avg_latency_ms || 0.150).toFixed(2)} ms`;
@@ -502,8 +522,19 @@
         ? `Channel ${String(d.current_band).padStart(2, '0')}`
         : 'Channel --';
 
-      lblStatus.innerText = d.detected ? 'SIGNAL CAUGHT (+1.0)' : 'Scanning...';
-      lblStatus.className = d.detected ? 'text-[10px] font-black text-[#15803d]' : 'text-[10px] font-black text-[#b45309]';
+      if (d.step === 0 && !isRunning) {
+        lblStatus.innerText = 'Standby';
+        lblStatus.className = 'text-[10px] font-black text-[#8c532b]';
+      } else if (!isRunning) {
+        lblStatus.innerText = 'Paused';
+        lblStatus.className = 'text-[10px] font-black text-[#b45309]';
+      } else if (d.detected) {
+        lblStatus.innerText = 'SIGNAL CAUGHT (+1.0)';
+        lblStatus.className = 'text-[10px] font-black text-[#15803d]';
+      } else {
+        lblStatus.innerText = 'Scanning...';
+        lblStatus.className = 'text-[10px] font-black text-[#b45309]';
+      }
 
       lblScore.innerText = (d.total_score >= 0 ? `+${d.total_score.toFixed(2)}` : d.total_score.toFixed(2));
       lblProgress.innerText = `Step ${d.step} / ${MAX_STEPS}`;
@@ -512,8 +543,10 @@
       lblReason.innerText = d.reason || 'Dwell-Dual Policy active: evaluating multi-band spectral co-occurrences.';
       lblMode.innerText = d.mode || 'DWELL LOCK';
 
-      // Push to waterfall history
-      pushWaterfallRow(currentPowers, activeBandsList, d.current_band, d.detected);
+      // Push to waterfall history ONLY during active scan steps (keeps reset waterfall cleanly empty)
+      if (d.step > 0) {
+        pushWaterfallRow(currentPowers, activeBandsList, d.current_band, d.detected);
+      }
 
       // Render visuals
       updateBandTiles();
@@ -539,7 +572,7 @@
         const isCurrent = (i === currentTunedBand);
         const isHitHolding = (now < bandHitExpiry[i]);
         const hasSignal = activeBandsList.includes(i) || currentPowers[i] > 0.35;
-        const power = currentPowers[i] || 0.04;
+        const power = (currentPowers && currentPowers[i] !== undefined) ? currentPowers[i] : 0.0;
 
         if (isCurrent) {
           // ===================================================================
@@ -786,21 +819,23 @@
 
     async function resetSimulation() {
       pause();
+      isStepping = false;
+      currentRevision++; // Invalidate any pending in-flight step
       step = 0;
       totalScore = 0.0;
-      signalsFound = 18;
-      totalSignals = 21;
+      signalsFound = 0;
+      totalSignals = 0;
       totalSwitches = 0;
       currentTunedBand = null;
       lastDetected = false;
 
       bandHitExpiry.fill(0);
-      currentPowers = new Array(BANDS).fill(0.04);
+      currentPowers = new Array(BANDS).fill(0.0);
       activeBandsList = [];
       waterfallHistory = [];
       for (let r = 0; r < ROWS; r++) {
         waterfallHistory.push({
-          powers: new Array(BANDS).fill(0.04),
+          powers: new Array(BANDS).fill(0.0),
           activeBands: [],
           scanBand: null,
           isHit: false
@@ -831,9 +866,9 @@
       applySnapshot({
         step: 0,
         total_score: 0.0,
-        signals_found: 18,
-        total_signals: 21,
-        interception_rate: 85.7,
+        signals_found: 0,
+        total_signals: 0,
+        interception_rate: 0.0,
         avg_latency_ms: 0.150,
         switches: 0,
         current_band: null,
@@ -864,7 +899,7 @@
     }
 
     btnPlay.addEventListener('click', () => isRunning ? pause() : play());
-    btnStep.addEventListener('click', () => { pause(); advanceStep(); });
+    btnStep.addEventListener('click', () => { pause(); advanceStep(true); });
     btnReset.addEventListener('click', () => resetSimulation());
     scenarioSelect.addEventListener('change', () => resetSimulation());
     if (speedSelect) {

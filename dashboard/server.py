@@ -70,14 +70,14 @@ class SimulationManager:
             self.step_count = 0
             self.revision += 1
             self.total_score = 0.0
-            self.signals_found = 18
-            self.total_signals = 21
+            self.signals_found = 0
+            self.total_signals = 0
             self.powers = [0.0] * 20
             self.last_action = None
             self.last_outcome = None
             self.last_detected = False
             self.mode = 'INITIAL SWEEP'
-            self.reason = 'System initialized with Dwell-Dual Policy. Click "START SCAN" to begin.'
+            self.reason = 'System reset. Click "START SCAN" to begin cognitive interception.'
             self.total_control_ms = 0.0
             self.switches = 0
             self.active_bands = []
@@ -89,7 +89,7 @@ class SimulationManager:
             if self.total_signals > 0:
                 interception_rate = round(100.0 * self.signals_found / self.total_signals, 1)
             else:
-                interception_rate = 85.0
+                interception_rate = 0.0
             avg_latency = round(self.total_control_ms / max(1, self.step_count), 2) if self.step_count > 0 else 0.15
 
             return {
