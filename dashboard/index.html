@@ -159,15 +159,12 @@
           <span class="font-black text-[#78350f] uppercase tracking-wider text-[11px]">
             Receiver Channels (20 Frequency Bands)
           </span>
-          <span class="text-[9px] font-bold text-[#8c532b] bg-[#ebdcc9] px-1.5 py-0.2 rounded border border-[#bfa080]">
-            ⚡ Hit persists for 3 seconds
-          </span>
         </div>
         <div class="flex items-center gap-3 text-[10px] font-bold text-[#78350f]">
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#b45309] bg-[#fef3c7]"></span> Scanning</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#15803d] bg-[#dcfce7]"></span> Hit (3s)</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#16a34a] bg-[#f0fdf4]"></span> Active</span>
-          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#8c532b] bg-[#fffdfa]"></span> Idle</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#dc2626] bg-[#fef2f2]"></span> 🔴 Signal (Red)</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#ca8a04] bg-[#fef9c3]"></span> 🟡 Scanner (Yellow)</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#15803d] bg-[#dcfce7]"></span> 🟢 Hit (Green)</span>
+          <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded border-2 border-[#8c532b] bg-[#fffdfa]"></span> ⚪ Idle</span>
         </div>
       </div>
 
@@ -182,9 +179,9 @@
       <div class="flex justify-between items-center px-1 text-[10px] text-[#78350f] font-black shrink-0">
         <span class="uppercase tracking-wider">Tactical Waterfall Spectrogram (Time Flows Down &darr; &bull; Last 15 Steps)</span>
         <span class="text-[#8c532b] font-bold">
-          <span class="text-[#15803d]">■ Green: Active Signal</span> &bull; 
-          <span class="text-[#b45309]">■ Amber: Scanned Band</span> &bull; 
-          <span class="text-[#d97706] font-black">★ Gold: Intercept Hit</span>
+          <span class="text-[#dc2626]">■ Red: Signal</span> &bull; 
+          <span class="text-[#ca8a04]">■ Yellow: Scanner</span> &bull; 
+          <span class="text-[#15803d] font-black">★ Green: Hit</span>
         </span>
       </div>
 
@@ -216,7 +213,6 @@
     const BANDS = 20;
     const ROWS = 15; // Shortened history: 15 rows for large, distinct chunky time steps
     const MAX_STEPS = 150;
-    const HIT_HOLD_MS = 3000; // Hit persists for 3 seconds
 
     let step = 0;
     let isRunning = false;
@@ -234,11 +230,8 @@
     let currentTunedBand = null;
     let lastDetected = false;
 
-    // Hit expiration tracker for each of the 20 bands: bandHitExpiry[b] = timestamp
-    const bandHitExpiry = new Array(BANDS).fill(0);
-
     // Buffers
-    let currentPowers = new Array(BANDS).fill(0.04);
+    let currentPowers = new Array(BANDS).fill(0.0);
     let activeBandsList = [];
     let waterfallHistory = [];
     for (let r = 0; r < ROWS; r++) {
@@ -448,14 +441,6 @@
         lastDetected = false;
       }
 
-      if (chosenBand !== null && chosenBand !== undefined) {
-        if (isHit) {
-          bandHitExpiry[chosenBand] = Date.now() + HIT_HOLD_MS;
-        } else {
-          bandHitExpiry[chosenBand] = 0; // RESET HIT when scanner checks it and finds no signal
-        }
-      }
-
       if (prevBand !== null && prevBand !== chosenBand) {
         totalScore -= 0.08;
         totalSwitches++;
@@ -498,20 +483,6 @@
       currentPowers = d.powers || new Array(BANDS).fill(0.0);
       activeBandsList = d.active_bands || [];
 
-      // RESET / REFRESH HIT: When the scanner checks current_band:
-      // If signal detected on this check: trigger 3s celebration hold
-      // If signal NOT detected on this check: IMMEDIATELY RESET any previous hit!
-      if (d.current_band !== null && d.current_band !== undefined) {
-        if (d.detected) {
-          bandHitExpiry[d.current_band] = Date.now() + HIT_HOLD_MS;
-        } else {
-          bandHitExpiry[d.current_band] = 0; // RESET HIT!
-        }
-      } else {
-        // Reset state: clear all band hit expirations
-        bandHitExpiry.fill(0);
-      }
-
       // Update KPI Cards
       const rateVal = (d.interception_rate !== undefined) ? d.interception_rate : 0.0;
       lblHitRate.innerText = (d.total_signals > 0) ? `${rateVal.toFixed(1)}%` : '0.0%';
@@ -553,14 +524,7 @@
       drawWaterfall();
     }
 
-    // Continuous UI refresher for 3-second hit countdown expiration
-    setInterval(() => {
-      updateBandTiles();
-    }, 100);
-
     function updateBandTiles() {
-      const now = Date.now();
-
       for (let i = 0; i < BANDS; i++) {
         const tile = document.getElementById(`bandTile_${i}`);
         const badge = document.getElementById(`bandBadge_${i}`);
@@ -569,101 +533,80 @@
         const lbl = document.getElementById(`bandLabel_${i}`);
         if (!tile || !badge || !bar || !dot) continue;
 
-        const isCurrent = (i === currentTunedBand);
-        const isHitHolding = (now < bandHitExpiry[i]);
+        const isScanner = (i === currentTunedBand);
         const hasSignal = activeBandsList.includes(i) || currentPowers[i] > 0.35;
+        const isHit = isScanner && (lastDetected || hasSignal);
         const power = (currentPowers && currentPowers[i] !== undefined) ? currentPowers[i] : 0.0;
 
-        if (isCurrent) {
+        if (isHit) {
           // ===================================================================
-          // SCANNER ANTENNA ACTIVE POSITION (ALWAYS HIGHEST PRIORITY)
+          // 🟢 GREEN FOR HIT: Scanner is on this band AND caught the signal!
           // ===================================================================
-          tile.classList.remove('hit-active');
           tile.style.transform = 'scale(1.06)';
           tile.style.zIndex = '20';
+          tile.style.border = '3px solid #15803d'; // Rich green border
+          tile.style.backgroundColor = '#dcfce7'; // Light green background
+          tile.style.boxShadow = '0 0 14px rgba(21, 128, 61, 0.6)';
 
           if (lbl) {
-            lbl.innerHTML = `<span class="text-[#b45309] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
+            lbl.innerHTML = `<span class="text-[#15803d] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
           }
 
-          if (lastDetected) {
-            // Scanner locked on live signal
-            tile.style.border = '3px solid #15803d';
-            tile.style.backgroundColor = '#dcfce7';
-            tile.style.boxShadow = '0 0 14px rgba(21, 128, 61, 0.6)';
-            
-            badge.innerText = '📡 HIT!';
-            badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#15803d] text-white shadow-xs animate-pulse';
-            dot.className = 'w-2.5 h-2.5 rounded-full bg-[#15803d] shadow-sm animate-ping';
-            bar.style.width = '100%';
-            bar.style.backgroundColor = '#15803d';
-          } else {
-            // Scanner actively checking this band (empty / listening)
-            tile.style.border = '3px solid #b45309';
-            tile.style.backgroundColor = '#fef3c7';
-            tile.style.boxShadow = '0 0 14px rgba(180, 83, 9, 0.5)';
-
-            badge.innerText = '📡 SCAN';
-            badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#b45309] text-white shadow-xs animate-pulse';
-            dot.className = 'w-2 h-2 rounded-full bg-[#b45309] animate-ping';
-            bar.style.width = `${Math.min(100, Math.max(20, power * 100))}%`;
-            bar.style.backgroundColor = '#b45309';
-          }
-
-        } else if (isHitHolding) {
-          // ===================================================================
-          // LINGERING HIT CELEBRATION (PERSISTS FOR UP TO 3s WHILE SCANNER IS ELSEWHERE)
-          // ===================================================================
-          tile.style.transform = 'none';
-          tile.style.zIndex = '1';
-          tile.style.border = '2.5px solid #15803d';
-          tile.style.backgroundColor = '#dcfce7';
-          tile.style.boxShadow = '0 0 8px rgba(21, 128, 61, 0.35)';
-          tile.classList.add('hit-active');
-
-          if (lbl) {
-            lbl.innerHTML = `<span class="text-[#15803d] font-black">B${String(i).padStart(2, '0')}</span>`;
-          }
-
-          const remainSec = Math.max(0, Math.ceil((bandHitExpiry[i] - now) / 1000));
-          badge.innerText = `★ HIT (${remainSec}s)`;
-          badge.className = 'text-[8px] font-black uppercase text-center w-full py-0.5 rounded bg-[#15803d] text-white shadow-xs';
-          
-          dot.className = 'w-2 h-2 rounded-full bg-[#15803d] shadow-sm';
+          badge.innerText = '🟢 HIT!';
+          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#15803d] text-white shadow-xs animate-pulse';
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-[#15803d] shadow-sm animate-ping';
           bar.style.width = '100%';
           bar.style.backgroundColor = '#15803d';
 
+        } else if (isScanner) {
+          // ===================================================================
+          // 🟡 YELLOW FOR SCANNER: Receiver antenna is here probing/listening
+          // ===================================================================
+          tile.style.transform = 'scale(1.06)';
+          tile.style.zIndex = '20';
+          tile.style.border = '3px solid #ca8a04'; // Warm yellow/amber border
+          tile.style.backgroundColor = '#fef9c3'; // Light yellow background
+          tile.style.boxShadow = '0 0 14px rgba(202, 138, 4, 0.5)';
+
+          if (lbl) {
+            lbl.innerHTML = `<span class="text-[#854d0e] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
+          }
+
+          badge.innerText = '🟡 SCAN';
+          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#eab308] text-[#713f12] shadow-xs animate-pulse';
+          dot.className = 'w-2 h-2 rounded-full bg-[#ca8a04] animate-ping';
+          bar.style.width = '25%';
+          bar.style.backgroundColor = '#ca8a04';
+
         } else if (hasSignal) {
           // ===================================================================
-          // ACTIVE EMITTER PRESENT IN SPECTRUM
+          // 🔴 RED FOR SIGNALS: Active emitter signal transmitting in this band
           // ===================================================================
           tile.style.transform = 'none';
           tile.style.zIndex = '1';
-          tile.style.border = '2px solid #16a34a';
-          tile.style.backgroundColor = '#f0fdf4';
+          tile.style.border = '2.5px solid #dc2626'; // Vibrant Red border
+          tile.style.backgroundColor = '#fef2f2'; // Soft Red background
           tile.style.boxShadow = 'none';
-          tile.classList.remove('hit-active');
 
           if (lbl) {
-            lbl.innerHTML = `<span class="text-[#78350f]">B${String(i).padStart(2, '0')}</span>`;
+            lbl.innerHTML = `<span class="text-[#b91c1c] font-black">B${String(i).padStart(2, '0')}</span>`;
           }
 
-          badge.innerText = 'EMIT';
-          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#86efac] text-[#14532d]';
-          dot.className = 'w-2 h-2 rounded-full bg-[#16a34a]';
-          bar.style.width = `${Math.min(100, Math.max(25, power * 100))}%`;
-          bar.style.backgroundColor = '#16a34a';
+          badge.innerText = '🔴 SIGNAL';
+          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#dc2626] text-white shadow-xs';
+          dot.className = 'w-2 h-2 rounded-full bg-[#dc2626]';
+          bar.style.width = `${Math.min(100, Math.max(35, power * 100))}%`;
+          bar.style.backgroundColor = '#dc2626';
 
         } else {
           // ===================================================================
-          // IDLE CHANNEL (CLEAN BROWN BORDER)
+          // ⚪ IDLE CHANNEL: No signal and scanner elsewhere (Clean brown border)
           // ===================================================================
           tile.style.transform = 'none';
           tile.style.zIndex = '1';
           tile.style.border = '2px solid #8c532b';
           tile.style.backgroundColor = '#fffdfa';
           tile.style.boxShadow = 'none';
-          tile.classList.remove('hit-active');
 
           if (lbl) {
             lbl.innerHTML = `<span class="text-[#78350f]">B${String(i).padStart(2, '0')}</span>`;
@@ -672,7 +615,7 @@
           badge.innerText = 'IDLE';
           badge.className = 'text-[9px] font-bold uppercase text-center w-full py-0.5 rounded text-[#8c532b]';
           dot.className = 'w-1.5 h-1.5 rounded-full bg-[#c4a68a]';
-          bar.style.width = `${Math.min(100, power * 100)}%`;
+          bar.style.width = '0%';
           bar.style.backgroundColor = '#c4a68a';
         }
       }
@@ -727,19 +670,19 @@
 
           if (isHit) {
             // -----------------------------------------------------------------
-            // INTERCEPTED HIT CELL: Radiant High-Contrast Gold / Yellow
+            // 🟢 INTERCEPTED HIT CELL: Vibrant Forest Emerald Green
             // -----------------------------------------------------------------
-            ctx.fillStyle = '#f59e0b';
+            ctx.fillStyle = '#15803d';
             ctx.fillRect(x + 1, y + 1, colW - 2, rowH - 2);
 
-            // Bold dark brown/amber outline
-            ctx.strokeStyle = '#78350f';
+            // Bold dark green outline
+            ctx.strokeStyle = '#14532d';
             ctx.lineWidth = 2.5;
             ctx.strokeRect(x + 1.5, y + 1.5, colW - 3, rowH - 3);
 
             // Print "★ HIT" right inside the cell if space permits
             if (rowH >= 12 && colW >= 24) {
-              ctx.fillStyle = '#78350f';
+              ctx.fillStyle = '#ffffff';
               ctx.font = '900 10px monospace';
               ctx.textAlign = 'center';
               ctx.textBaseline = 'middle';
@@ -748,33 +691,33 @@
 
           } else if (isScanned) {
             // -----------------------------------------------------------------
-            // SCANNED CELL (Receiver Antenna Listened Here)
+            // 🟡 SCANNED CELL: Bright Warm Yellow (Scanner Antenna Tuned Here)
             // -----------------------------------------------------------------
-            ctx.fillStyle = '#fef3c7'; // warm amber tint
+            ctx.fillStyle = '#fef08a'; // bright yellow
             ctx.fillRect(x + 1, y + 1, colW - 2, rowH - 2);
 
-            ctx.strokeStyle = '#b45309';
+            ctx.strokeStyle = '#ca8a04';
             ctx.lineWidth = 2;
             ctx.strokeRect(x + 1, y + 1, colW - 2, rowH - 2);
 
             // Crosshair reticle mark
-            ctx.fillStyle = '#b45309';
+            ctx.fillStyle = '#ca8a04';
             ctx.fillRect(x + colW / 2 - 2, y + rowH / 2 - 2, 4, 4);
 
           } else if (isAct) {
             // -----------------------------------------------------------------
-            // ACTIVE EMITTER CELL: Distinct, Vibrant Forest Emerald Green
+            // 🔴 ACTIVE EMITTER CELL: Distinct Crimson / Red Signal
             // -----------------------------------------------------------------
-            ctx.fillStyle = '#15803d';
+            ctx.fillStyle = '#ef4444'; // vibrant signal red
             ctx.fillRect(x + 1, y + 1, colW - 2, rowH - 2);
 
-            ctx.strokeStyle = '#166534';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#b91c1c';
+            ctx.lineWidth = 1.5;
             ctx.strokeRect(x + 1, y + 1, colW - 2, rowH - 2);
 
           } else {
             // -----------------------------------------------------------------
-            // QUIET SPECTRUM FLOOR
+            // ⚪ QUIET SPECTRUM FLOOR
             // -----------------------------------------------------------------
             ctx.fillStyle = (r % 2 === 0) ? '#f5eee3' : '#f0e8db';
             ctx.fillRect(x + 1, y + 1, colW - 2, rowH - 2);
@@ -828,8 +771,6 @@
       totalSwitches = 0;
       currentTunedBand = null;
       lastDetected = false;
-
-      bandHitExpiry.fill(0);
       currentPowers = new Array(BANDS).fill(0.0);
       activeBandsList = [];
       waterfallHistory = [];
