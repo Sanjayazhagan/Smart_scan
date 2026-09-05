@@ -74,6 +74,13 @@
         <option value="crowded">Crowded Battlespace</option>
       </select>
 
+      <!-- Scan Speed Selector -->
+      <select id="speedSelect" class="bg-[#fffdfa] border-2 border-[#78350f] text-xs font-black rounded px-2 py-1 text-[#78350f] focus:outline-none focus:border-[#b45309] cursor-pointer shadow-xs">
+        <option value="750" selected>🐢 Slow (0.75s)</option>
+        <option value="500">⚡ Normal (0.5s)</option>
+        <option value="250">⏩ Fast (0.25s)</option>
+      </select>
+
       <!-- Start / Pause Button -->
       <button id="btnPlay" class="bg-[#15803d] hover:bg-[#166534] text-white font-black text-xs px-3.5 py-1 rounded border-2 border-[#14532d] transition shadow-xs cursor-pointer flex items-center gap-1.5">
         <span id="playIcon">▶</span> <span id="playText">START SCAN</span>
@@ -214,7 +221,7 @@
     let step = 0;
     let isRunning = false;
     let timer = null;
-    const speedMs = 240;
+    let speedMs = 750; // Slower default: 750ms per step for clear observation
     let backendActive = false;
     let currentRevision = 0;
 
@@ -250,6 +257,7 @@
     const canvas = document.getElementById('waterfallCanvas');
     const ctx = canvas.getContext('2d');
     const scenarioSelect = document.getElementById('scenarioSelect');
+    const speedSelect = document.getElementById('speedSelect');
     const btnPlay = document.getElementById('btnPlay');
     const playIcon = document.getElementById('playIcon');
     const playText = document.getElementById('playText');
@@ -279,7 +287,7 @@
       tile.style.minWidth = '0';
       tile.innerHTML = `
         <div class="flex items-center justify-between w-full px-0.5">
-          <span class="text-[10px] font-mono font-black text-[#78350f]">B${String(i).padStart(2, '0')}</span>
+          <span id="bandLabel_${i}" class="text-[10px] font-mono font-black text-[#78350f]">B${String(i).padStart(2, '0')}</span>
           <span id="bandDot_${i}" class="w-2 h-2 rounded-full bg-[#c4a68a]"></span>
         </div>
         <div id="bandBadge_${i}" class="text-[9px] font-black uppercase text-center w-full truncate py-0.5 rounded text-[#8c532b]">
@@ -423,6 +431,14 @@
         lastDetected = false;
       }
 
+      if (chosenBand !== null && chosenBand !== undefined) {
+        if (isHit) {
+          bandHitExpiry[chosenBand] = Date.now() + HIT_HOLD_MS;
+        } else {
+          bandHitExpiry[chosenBand] = 0; // RESET HIT when scanner checks it and finds no signal
+        }
+      }
+
       if (prevBand !== null && prevBand !== chosenBand) {
         totalScore -= 0.08;
         totalSwitches++;
@@ -465,9 +481,15 @@
       currentPowers = d.powers || new Array(BANDS).fill(0.04);
       activeBandsList = d.active_bands || [];
 
-      // If a signal was detected on current_band, trigger the 3-second hold!
-      if (d.detected && d.current_band !== null && d.current_band !== undefined) {
-        bandHitExpiry[d.current_band] = Date.now() + HIT_HOLD_MS;
+      // RESET / REFRESH HIT: When the scanner checks current_band:
+      // If signal detected on this check: trigger 3s celebration hold
+      // If signal NOT detected on this check: IMMEDIATELY RESET any previous hit!
+      if (d.current_band !== null && d.current_band !== undefined) {
+        if (d.detected) {
+          bandHitExpiry[d.current_band] = Date.now() + HIT_HOLD_MS;
+        } else {
+          bandHitExpiry[d.current_band] = 0; // RESET HIT!
+        }
       }
 
       // Update KPI Cards
@@ -511,6 +533,7 @@
         const badge = document.getElementById(`bandBadge_${i}`);
         const bar = document.getElementById(`bandBar_${i}`);
         const dot = document.getElementById(`bandDot_${i}`);
+        const lbl = document.getElementById(`bandLabel_${i}`);
         if (!tile || !badge || !bar || !dot) continue;
 
         const isCurrent = (i === currentTunedBand);
@@ -518,50 +541,82 @@
         const hasSignal = activeBandsList.includes(i) || currentPowers[i] > 0.35;
         const power = currentPowers[i] || 0.04;
 
-        if (isHitHolding) {
+        if (isCurrent) {
           // ===================================================================
-          // 3-SECOND HIT CELEBRATION BLOCK (BRIGHT, PROMINENT, GREEN/GOLD)
+          // SCANNER ANTENNA ACTIVE POSITION (ALWAYS HIGHEST PRIORITY)
           // ===================================================================
+          tile.classList.remove('hit-active');
+          tile.style.transform = 'scale(1.06)';
+          tile.style.zIndex = '20';
+
+          if (lbl) {
+            lbl.innerHTML = `<span class="text-[#b45309] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
+          }
+
+          if (lastDetected) {
+            // Scanner locked on live signal
+            tile.style.border = '3px solid #15803d';
+            tile.style.backgroundColor = '#dcfce7';
+            tile.style.boxShadow = '0 0 14px rgba(21, 128, 61, 0.6)';
+            
+            badge.innerText = '📡 HIT!';
+            badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#15803d] text-white shadow-xs animate-pulse';
+            dot.className = 'w-2.5 h-2.5 rounded-full bg-[#15803d] shadow-sm animate-ping';
+            bar.style.width = '100%';
+            bar.style.backgroundColor = '#15803d';
+          } else {
+            // Scanner actively checking this band (empty / listening)
+            tile.style.border = '3px solid #b45309';
+            tile.style.backgroundColor = '#fef3c7';
+            tile.style.boxShadow = '0 0 14px rgba(180, 83, 9, 0.5)';
+
+            badge.innerText = '📡 SCAN';
+            badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#b45309] text-white shadow-xs animate-pulse';
+            dot.className = 'w-2 h-2 rounded-full bg-[#b45309] animate-ping';
+            bar.style.width = `${Math.min(100, Math.max(20, power * 100))}%`;
+            bar.style.backgroundColor = '#b45309';
+          }
+
+        } else if (isHitHolding) {
+          // ===================================================================
+          // LINGERING HIT CELEBRATION (PERSISTS FOR UP TO 3s WHILE SCANNER IS ELSEWHERE)
+          // ===================================================================
+          tile.style.transform = 'none';
+          tile.style.zIndex = '1';
           tile.style.border = '2.5px solid #15803d';
           tile.style.backgroundColor = '#dcfce7';
-          tile.style.boxShadow = '0 0 10px rgba(21, 128, 61, 0.45)';
+          tile.style.boxShadow = '0 0 8px rgba(21, 128, 61, 0.35)';
           tile.classList.add('hit-active');
 
-          badge.innerText = '★ HIT!';
-          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#15803d] text-white shadow-xs';
+          if (lbl) {
+            lbl.innerHTML = `<span class="text-[#15803d] font-black">B${String(i).padStart(2, '0')}</span>`;
+          }
+
+          const remainSec = Math.max(0, Math.ceil((bandHitExpiry[i] - now) / 1000));
+          badge.innerText = `★ HIT (${remainSec}s)`;
+          badge.className = 'text-[8px] font-black uppercase text-center w-full py-0.5 rounded bg-[#15803d] text-white shadow-xs';
           
-          dot.className = 'w-2.5 h-2.5 rounded-full bg-[#15803d] shadow-sm animate-ping';
+          dot.className = 'w-2 h-2 rounded-full bg-[#15803d] shadow-sm';
           bar.style.width = '100%';
           bar.style.backgroundColor = '#15803d';
-
-        } else if (isCurrent) {
-          // ===================================================================
-          // SCANNER SCAN POSITION (AMBER DWELL / TUNED INDICATOR)
-          // ===================================================================
-          tile.style.border = '2.5px solid #b45309';
-          tile.style.backgroundColor = '#fef3c7';
-          tile.style.boxShadow = '0 0 8px rgba(180, 83, 9, 0.35)';
-          tile.classList.remove('hit-active');
-
-          badge.innerText = 'SCAN';
-          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#b45309] text-white shadow-xs';
-
-          dot.className = 'w-2 h-2 rounded-full bg-[#b45309]';
-          bar.style.width = `${Math.min(100, Math.max(20, power * 100))}%`;
-          bar.style.backgroundColor = '#b45309';
 
         } else if (hasSignal) {
           // ===================================================================
           // ACTIVE EMITTER PRESENT IN SPECTRUM
           // ===================================================================
+          tile.style.transform = 'none';
+          tile.style.zIndex = '1';
           tile.style.border = '2px solid #16a34a';
           tile.style.backgroundColor = '#f0fdf4';
           tile.style.boxShadow = 'none';
           tile.classList.remove('hit-active');
 
+          if (lbl) {
+            lbl.innerHTML = `<span class="text-[#78350f]">B${String(i).padStart(2, '0')}</span>`;
+          }
+
           badge.innerText = 'EMIT';
           badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#86efac] text-[#14532d]';
-
           dot.className = 'w-2 h-2 rounded-full bg-[#16a34a]';
           bar.style.width = `${Math.min(100, Math.max(25, power * 100))}%`;
           bar.style.backgroundColor = '#16a34a';
@@ -570,14 +625,19 @@
           // ===================================================================
           // IDLE CHANNEL (CLEAN BROWN BORDER)
           // ===================================================================
+          tile.style.transform = 'none';
+          tile.style.zIndex = '1';
           tile.style.border = '2px solid #8c532b';
           tile.style.backgroundColor = '#fffdfa';
           tile.style.boxShadow = 'none';
           tile.classList.remove('hit-active');
 
+          if (lbl) {
+            lbl.innerHTML = `<span class="text-[#78350f]">B${String(i).padStart(2, '0')}</span>`;
+          }
+
           badge.innerText = 'IDLE';
           badge.className = 'text-[9px] font-bold uppercase text-center w-full py-0.5 rounded text-[#8c532b]';
-
           dot.className = 'w-1.5 h-1.5 rounded-full bg-[#c4a68a]';
           bar.style.width = `${Math.min(100, power * 100)}%`;
           bar.style.backgroundColor = '#c4a68a';
@@ -712,8 +772,15 @@
       if (currentTunedBand !== null && currentTunedBand !== undefined) {
         const retX = currentTunedBand * colW;
         ctx.strokeStyle = '#78350f';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(retX + 0.5, 0.5, colW - 1, rowH - 1);
+        ctx.lineWidth = 3.5;
+        ctx.strokeRect(retX + 1, 1, colW - 2, rowH - 2);
+
+        // Bold antenna scan marker on top row
+        ctx.fillStyle = '#78350f';
+        ctx.font = '900 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('📡 ⌖', retX + colW / 2, rowH / 2);
       }
     }
 
@@ -800,6 +867,15 @@
     btnStep.addEventListener('click', () => { pause(); advanceStep(); });
     btnReset.addEventListener('click', () => resetSimulation());
     scenarioSelect.addEventListener('change', () => resetSimulation());
+    if (speedSelect) {
+      speedSelect.addEventListener('change', () => {
+        speedMs = parseInt(speedSelect.value);
+        if (isRunning) {
+          clearInterval(timer);
+          timer = setInterval(advanceStep, speedMs);
+        }
+      });
+    }
     window.addEventListener('resize', () => drawWaterfall());
 
     // Boot
