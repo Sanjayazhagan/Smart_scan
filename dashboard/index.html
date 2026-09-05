@@ -542,14 +542,16 @@
           // ===================================================================
           // 🟢 GREEN FOR HIT: Scanner is on this band AND caught the signal!
           // ===================================================================
-          tile.style.transform = 'scale(1.06)';
-          tile.style.zIndex = '20';
-          tile.style.border = '3px solid #15803d'; // Rich green border
-          tile.style.backgroundColor = '#dcfce7'; // Light green background
-          tile.style.boxShadow = '0 0 14px rgba(21, 128, 61, 0.6)';
+          tile.style.transform = 'scale(1.10)';
+          tile.style.zIndex = '30';
+          tile.style.border = '3.5px solid #14532d'; // Bold dark forest green
+          tile.style.outline = '3.5px solid #22c55e'; // Thick vibrant green outline ring
+          tile.style.outlineOffset = '2px';
+          tile.style.backgroundColor = '#bbf7d0'; // High-contrast bright green
+          tile.style.boxShadow = '0 0 18px rgba(34, 197, 94, 0.9)';
 
           if (lbl) {
-            lbl.innerHTML = `<span class="text-[#15803d] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
+            lbl.innerHTML = `<span class="text-[#14532d] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
           }
 
           badge.innerText = '🟢 HIT!';
@@ -560,23 +562,25 @@
 
         } else if (isScanner) {
           // ===================================================================
-          // 🟡 YELLOW FOR SCANNER: Receiver antenna is here probing/listening
+          // 🟡 YELLOW FOR SCANNER: Distinct bright canary yellow & thick outline
           // ===================================================================
-          tile.style.transform = 'scale(1.06)';
-          tile.style.zIndex = '20';
-          tile.style.border = '3px solid #ca8a04'; // Warm yellow/amber border
-          tile.style.backgroundColor = '#fef9c3'; // Light yellow background
-          tile.style.boxShadow = '0 0 14px rgba(202, 138, 4, 0.5)';
+          tile.style.transform = 'scale(1.10)';
+          tile.style.zIndex = '30';
+          tile.style.border = '3.5px solid #854d0e'; // Bold dark amber border
+          tile.style.outline = '3.5px solid #facc15'; // THICK ELECTRIC YELLOW OUTLINE
+          tile.style.outlineOffset = '2px';
+          tile.style.backgroundColor = '#fef08a'; // Bright, high-contrast canary yellow
+          tile.style.boxShadow = '0 0 20px rgba(250, 204, 21, 0.95)';
 
           if (lbl) {
-            lbl.innerHTML = `<span class="text-[#854d0e] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
+            lbl.innerHTML = `<span class="text-[#713f12] font-black">📡 B${String(i).padStart(2, '0')}</span>`;
           }
 
           badge.innerText = '🟡 SCAN';
           badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#eab308] text-[#713f12] shadow-xs animate-pulse';
-          dot.className = 'w-2 h-2 rounded-full bg-[#ca8a04] animate-ping';
-          bar.style.width = '25%';
-          bar.style.backgroundColor = '#ca8a04';
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-[#854d0e] animate-ping';
+          bar.style.width = '100%';
+          bar.style.backgroundColor = '#eab308';
 
         } else if (hasSignal) {
           // ===================================================================
@@ -585,7 +589,9 @@
           tile.style.transform = 'none';
           tile.style.zIndex = '1';
           tile.style.border = '2.5px solid #dc2626'; // Vibrant Red border
-          tile.style.backgroundColor = '#fef2f2'; // Soft Red background
+          tile.style.outline = 'none';
+          tile.style.outlineOffset = '0px';
+          tile.style.backgroundColor = '#fee2e2'; // Soft distinct red
           tile.style.boxShadow = 'none';
 
           if (lbl) {
@@ -605,6 +611,8 @@
           tile.style.transform = 'none';
           tile.style.zIndex = '1';
           tile.style.border = '2px solid #8c532b';
+          tile.style.outline = 'none';
+          tile.style.outlineOffset = '0px';
           tile.style.backgroundColor = '#fffdfa';
           tile.style.boxShadow = 'none';
 
@@ -747,13 +755,19 @@
       // 4. Current Scanner Reticle Indicator on Top Step (Row 0)
       if (currentTunedBand !== null && currentTunedBand !== undefined) {
         const retX = currentTunedBand * colW;
-        ctx.strokeStyle = '#78350f';
-        ctx.lineWidth = 3.5;
-        ctx.strokeRect(retX + 1, 1, colW - 2, rowH - 2);
+        // Thick Electric Yellow Outline showing scanner position
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 4.5;
+        ctx.strokeRect(retX + 2, 2, colW - 4, rowH - 4);
+
+        // Dark framing border
+        ctx.strokeStyle = '#713f12';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(retX + 0.5, 0.5, colW - 1, rowH - 1);
 
         // Bold antenna scan marker on top row
-        ctx.fillStyle = '#78350f';
-        ctx.font = '900 10px monospace';
+        ctx.fillStyle = '#713f12';
+        ctx.font = '900 11px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('📡 ⌖', retX + colW / 2, rowH / 2);
