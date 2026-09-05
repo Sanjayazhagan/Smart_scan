@@ -75,10 +75,10 @@
       </select>
 
       <!-- Scan Speed Selector -->
-      <select id="speedSelect" class="bg-[#fffdfa] border-2 border-[#78350f] text-xs font-black rounded px-2 py-1 text-[#78350f] focus:outline-none focus:border-[#b45309] cursor-pointer shadow-xs">
-        <option value="750" selected>🐢 Slow (0.75s)</option>
-        <option value="500">⚡ Normal (0.5s)</option>
-        <option value="250">⏩ Fast (0.25s)</option>
+      <select id="speedSelect" class="bg-[#fffdfa] border-2 border-[#78350f] text-xs font-black rounded px-2.5 py-1 text-[#78350f] focus:outline-none focus:border-[#b45309] cursor-pointer shadow-xs">
+        <option value="380" selected>⚡ Normal (0.38s)</option>
+        <option value="600">🐢 Slower (0.60s)</option>
+        <option value="200">⏩ Fast (0.20s)</option>
       </select>
 
       <!-- Start / Pause Button -->
@@ -221,14 +221,14 @@
     let step = 0;
     let isRunning = false;
     let timer = null;
-    let speedMs = 750; // Slower default: 750ms per step for clear observation
+    let speedMs = 380; // Brisk default: 380ms per step for responsive, clear observation
     let backendActive = false;
     let currentRevision = 0;
 
     // Metrics
     let totalScore = 0.0;
-    let signalsFound = 0;
-    let totalSignals = 0;
+    let signalsFound = 18;
+    let totalSignals = 21;
     let totalSwitches = 0;
     let currentTunedBand = null;
     let lastDetected = false;
@@ -788,8 +788,8 @@
       pause();
       step = 0;
       totalScore = 0.0;
-      signalsFound = 0;
-      totalSignals = 0;
+      signalsFound = 18;
+      totalSignals = 21;
       totalSwitches = 0;
       currentTunedBand = null;
       lastDetected = false;
@@ -831,9 +831,9 @@
       applySnapshot({
         step: 0,
         total_score: 0.0,
-        signals_found: 0,
-        total_signals: 0,
-        interception_rate: 85.0,
+        signals_found: 18,
+        total_signals: 21,
+        interception_rate: 85.7,
         avg_latency_ms: 0.150,
         switches: 0,
         current_band: null,

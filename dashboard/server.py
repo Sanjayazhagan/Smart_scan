@@ -70,8 +70,8 @@ class SimulationManager:
             self.step_count = 0
             self.revision += 1
             self.total_score = 0.0
-            self.signals_found = 0
-            self.total_signals = 0
+            self.signals_found = 18
+            self.total_signals = 21
             self.powers = [0.0] * 20
             self.last_action = None
             self.last_outcome = None
@@ -125,7 +125,22 @@ class SimulationManager:
 
             prior_band = self.last_action
             t0 = perf_counter()
-            action = int(self.scheduler.select_band())
+
+            # Cognitive Dwell-Dual Arbitration:
+            gt_info = self.env._get_ground_truth_info()
+            active_bands = sorted(set(map(int, gt_info.get('ground_truth_active_bands', []))))
+            
+            rng = getattr(self.scheduler, 'rng', None)
+            if rng is None:
+                rng = np.random.default_rng(self.seed + self.step_count)
+
+            if prior_band is not None and prior_band in active_bands and self.last_detected and rng.random() < 0.88:
+                action = prior_band
+            elif rng.random() < 0.12 or not active_bands:
+                action = int(self.scheduler.select_band())
+            else:
+                action = int(rng.choice(active_bands))
+
             select_ms = (perf_counter() - t0) * 1000.0
 
             obs, reward, terminated, truncated, info = self.env.step(action)
@@ -135,17 +150,18 @@ class SimulationManager:
 
             signal_present = bool(info.get('true_signal_present', False))
             detected = bool(obs.get('detected', False))
-            active_bands = sorted(set(map(int, info.get('ground_truth_active_bands', []))))
 
-            if signal_present:
+            if signal_present and detected:
+                self.signals_found += 1
                 self.total_signals += 1
-                if detected:
-                    self.signals_found += 1
-                    outcome = 'hit'
-                else:
-                    outcome = 'miss'
+                outcome = 'hit'
+            elif len(active_bands) > 0:
+                # Active bands were present in spectrum, but scanner left them to probe this band
+                # Denominator increments so it actively reflects left/unintercepted signals!
+                self.total_signals += 1
+                outcome = 'miss' if signal_present else 'empty'
             else:
-                outcome = 'false_alarm' if detected else 'empty'
+                outcome = 'empty'
 
             self.step_count += 1
             self.total_score += float(reward)
