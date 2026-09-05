@@ -14,3 +14,4 @@ observable_*_diagnostic.json
 warmup_*_diagnostic.json
 warmup_*_pilot.json
 warmup_preliminary_validation.json
+dashboard/backups/
