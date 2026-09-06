@@ -95,6 +95,11 @@
       <button id="btnReset" class="brown-button font-black text-xs px-3 py-1 rounded shadow-xs cursor-pointer">
         Reset
       </button>
+
+      <!-- Interactive Jammer / Decoy Injection Button -->
+      <button id="btnJammer" class="bg-[#b91c1c] hover:bg-[#991b1b] text-white font-black text-xs px-3 py-1 rounded border-2 border-[#7f1d1d] transition shadow-xs cursor-pointer flex items-center gap-1.5" title="Inject DRFM jammer / deceptive decoy on Band 7">
+        <span id="jammerIcon">⚡</span> <span id="jammerText">INJECT JAMMER</span>
+      </button>
     </div>
   </header>
 
@@ -199,9 +204,14 @@
           Dwell-Dual Policy active: evaluating multi-band spectral co-occurrences.
         </span>
       </div>
-      <span id="lblMode" class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309] shrink-0">
-        DWELL LOCK
-      </span>
+      <div class="flex items-center gap-2 shrink-0">
+        <span id="lblEccm" class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#dcfce7] text-[#14532d] border-2 border-[#15803d]" title="Perception-layer 1D-CNN prototype authentication cosine similarity vs tau=0.7415">
+          ECCM: AUTH (0.88)
+        </span>
+        <span id="lblMode" class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309]">
+          DWELL LOCK
+        </span>
+      </div>
     </div>
 
   </main>
@@ -257,6 +267,9 @@
     const playText = document.getElementById('playText');
     const btnStep = document.getElementById('btnStep');
     const btnReset = document.getElementById('btnReset');
+    const btnJammer = document.getElementById('btnJammer');
+    const jammerIcon = document.getElementById('jammerIcon');
+    const jammerText = document.getElementById('jammerText');
     const backendBadge = document.getElementById('backendBadge');
 
     const lblHitRate = document.getElementById('lblHitRate');
@@ -269,6 +282,10 @@
     const lblSwitches = document.getElementById('lblSwitches');
     const lblReason = document.getElementById('lblReason');
     const lblMode = document.getElementById('lblMode');
+    const lblEccm = document.getElementById('lblEccm');
+
+    let jammerActive = false;
+    const JAMMER_BAND = 7;
 
     // Build the 20 Band Tiles in the array with distinctive brown borders
     bandRow.innerHTML = '';
@@ -514,6 +531,35 @@
       lblReason.innerText = d.reason || 'Dwell-Dual Policy active: evaluating multi-band spectral co-occurrences.';
       lblMode.innerText = d.mode || 'DWELL LOCK';
 
+      // Update Jammer Toggle UI
+      if (d.jammer_active !== undefined) {
+        jammerActive = Boolean(d.jammer_active);
+        if (jammerActive) {
+          btnJammer.className = 'bg-[#7f1d1d] hover:bg-[#991b1b] text-white font-black text-xs px-3 py-1 rounded border-2 border-[#ef4444] transition shadow-md animate-pulse cursor-pointer flex items-center gap-1.5';
+          jammerIcon.innerText = '🔴';
+          jammerText.innerText = 'JAMMER ON (B07)';
+        } else {
+          btnJammer.className = 'bg-[#b91c1c] hover:bg-[#991b1b] text-white font-black text-xs px-3 py-1 rounded border-2 border-[#7f1d1d] transition shadow-xs cursor-pointer flex items-center gap-1.5';
+          jammerIcon.innerText = '⚡';
+          jammerText.innerText = 'INJECT JAMMER';
+        }
+      }
+
+      // Update ECCM Perception Badge
+      if (d.last_sim !== undefined) {
+        const simVal = Number(d.last_sim).toFixed(2);
+        if (d.last_auth) {
+          lblEccm.innerText = `ECCM: AUTH (${simVal})`;
+          lblEccm.className = 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#dcfce7] text-[#14532d] border-2 border-[#15803d]';
+        } else if (d.mode === 'DECOY REJECTED' || (jammerActive && d.current_band === JAMMER_BAND)) {
+          lblEccm.innerText = `ECCM: REJECT (${simVal})`;
+          lblEccm.className = 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fee2e2] text-[#991b1b] border-2 border-[#dc2626] animate-pulse';
+        } else {
+          lblEccm.innerText = `ECCM: IDLE (${simVal})`;
+          lblEccm.className = 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309]';
+        }
+      }
+
       // Push to waterfall history ONLY during active scan steps (keeps reset waterfall cleanly empty)
       if (d.step > 0) {
         pushWaterfallRow(currentPowers, activeBandsList, d.current_band, d.detected);
@@ -538,7 +584,26 @@
         const isHit = isScanner && (lastDetected || hasSignal);
         const power = (currentPowers && currentPowers[i] !== undefined) ? currentPowers[i] : 0.0;
 
-        if (isHit) {
+        if (jammerActive && i === JAMMER_BAND && !isHit) {
+          tile.style.transform = isScanner ? 'scale(1.10)' : 'none';
+          tile.style.zIndex = '25';
+          tile.style.border = '3px dashed #dc2626';
+          tile.style.outline = '2px solid #ef4444';
+          tile.style.outlineOffset = '1px';
+          tile.style.backgroundColor = '#fdf2f8';
+          tile.style.boxShadow = '0 0 12px rgba(220, 38, 38, 0.4)';
+
+          if (lbl) {
+            lbl.innerHTML = `<span class="text-[#dc2626] font-black">⚡ B07</span>`;
+          }
+
+          badge.innerText = '⚡ DECOY';
+          badge.className = 'text-[9px] font-black uppercase text-center w-full py-0.5 rounded bg-[#be185d] text-white shadow-xs animate-pulse';
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-[#dc2626] animate-ping';
+          bar.style.width = '100%';
+          bar.style.backgroundColor = '#be185d';
+
+        } else if (isHit) {
           // ===================================================================
           // 🟢 GREEN FOR HIT: Scanner is on this band AND caught the signal!
           // ===================================================================
@@ -752,6 +817,21 @@
         ctx.stroke();
       }
 
+      // Jammer warning column overlay
+      if (jammerActive) {
+        ctx.fillStyle = 'rgba(219, 39, 119, 0.14)';
+        ctx.fillRect(JAMMER_BAND * colW, 0, colW, h);
+        ctx.strokeStyle = '#be185d';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(JAMMER_BAND * colW + 1, 0, colW - 2, h);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#be185d';
+        ctx.font = '900 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚡DECOY', JAMMER_BAND * colW + colW / 2, h - 8);
+      }
+
       // 4. Current Scanner Reticle Indicator on Top Step (Row 0)
       if (currentTunedBand !== null && currentTunedBand !== undefined) {
         const retX = currentTunedBand * colW;
@@ -856,6 +936,38 @@
     btnPlay.addEventListener('click', () => isRunning ? pause() : play());
     btnStep.addEventListener('click', () => { pause(); advanceStep(true); });
     btnReset.addEventListener('click', () => resetSimulation());
+
+    btnJammer.addEventListener('click', async () => {
+      if (backendActive) {
+        try {
+          const res = await fetch('/api/toggle_jammer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ band: JAMMER_BAND }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            applySnapshot(data);
+          }
+        } catch (err) {
+          console.error('Error toggling jammer:', err);
+        }
+      } else {
+        jammerActive = !jammerActive;
+        if (jammerActive) {
+          btnJammer.className = 'bg-[#7f1d1d] hover:bg-[#991b1b] text-white font-black text-xs px-3 py-1 rounded border-2 border-[#ef4444] transition shadow-md animate-pulse cursor-pointer flex items-center gap-1.5';
+          jammerIcon.innerText = '🔴';
+          jammerText.innerText = 'JAMMER ON (B07)';
+        } else {
+          btnJammer.className = 'bg-[#b91c1c] hover:bg-[#991b1b] text-white font-black text-xs px-3 py-1 rounded border-2 border-[#7f1d1d] transition shadow-xs cursor-pointer flex items-center gap-1.5';
+          jammerIcon.innerText = '⚡';
+          jammerText.innerText = 'INJECT JAMMER';
+        }
+        updateBandTiles();
+        drawWaterfall();
+      }
+    });
+
     scenarioSelect.addEventListener('change', () => resetSimulation());
     if (speedSelect) {
       speedSelect.addEventListener('change', () => {

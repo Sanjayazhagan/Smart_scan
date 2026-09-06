@@ -1,0 +1,1150 @@
+{
+  "run_metadata": {
+    "run_id": "smartscan_suite_20260906_125903",
+    "experiment_name": "statistical_rigor_14models",
+    "timestamp_utc": "2026-09-06T12:59:03.655681+00:00",
+    "git_commit": "213fb01dafe3c4c4c845b4dcebe9fc9056d509ff",
+    "seeds": [
+      10001,
+      10002,
+      10003,
+      10004,
+      10005,
+      10006,
+      10007,
+      10008,
+      10009,
+      10010,
+      10011,
+      10012,
+      10013,
+      10014,
+      10015,
+      10016,
+      10017,
+      10018,
+      10019,
+      10020,
+      10021,
+      10022,
+      10023,
+      10024,
+      10025,
+      10026,
+      10027,
+      10028,
+      10029,
+      10030,
+      10031,
+      10032,
+      10033,
+      10034,
+      10035,
+      10036,
+      10037,
+      10038,
+      10039,
+      10040,
+      10041,
+      10042,
+      10043,
+      10044,
+      10045,
+      10046,
+      10047,
+      10048,
+      10049,
+      10050
+    ],
+    "scenarios": [
+      "stationary",
+      "hopping",
+      "changing",
+      "harsh",
+      "operational",
+      "crowded"
+    ],
+    "episode_length": 150
+  },
+  "tiers": {
+    "tier_1": {
+      "name": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)",
+      "criterion": "Paired Student's t-test p >= 0.05 vs Dwell-Dual Policy (df=299, 300 paired episodes)",
+      "models": [
+        "Dwell-Dual Policy (Champion)"
+      ]
+    },
+    "tier_2": {
+      "name": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)",
+      "criterion": "Paired Student's t-test p < 0.05 vs Dwell-Dual Policy (df=299, 300 paired episodes)",
+      "models": [
+        "Dual-Policy Uncertainty",
+        "Static NMF+UCB",
+        "Direct NMF",
+        "SmartScan-Omni V2 (Tuned)",
+        "Candidate 1: LinUCB Bandit",
+        "SmartScan V2-NMF",
+        "Whittle Index RMAB",
+        "Robust PCA + PSR",
+        "Candidate 3: GRU-D Recurrent",
+        "Observable Plain UCB",
+        "Candidate 2: Boosted-Tree Dwell",
+        "Fixed Sequential Sweep",
+        "Uniform Random Scan"
+      ]
+    }
+  },
+  "leaderboard": {
+    "Dwell-Dual Policy (Champion)": {
+      "category": "Grand Champion",
+      "description": "NMF Spectral Discovery + Dwell-Lock Inertia + Agile Exploration",
+      "mean_reward": 18.17,
+      "std_reward": 17.48,
+      "reward_95ci": [
+        16.6,
+        19.74
+      ],
+      "reward_ci_str": "+18.17 (95% CI: [+16.60, +19.74])",
+      "mean_hits": 23.4,
+      "std_hits": 16.5,
+      "hits_95ci": [
+        21.3,
+        25.4
+      ],
+      "interception_rate_pct": 18.04,
+      "mean_switches": 80.2,
+      "std_switches": 9.0,
+      "switches_95ci": [
+        79.1,
+        81.2
+      ],
+      "latency_mean_ms": 0.371,
+      "latency_p95_ms": 0.6702,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 35.67,
+          "std": 15.98
+        },
+        "hopping": {
+          "mean": 22.24,
+          "std": 9.72
+        },
+        "changing": {
+          "mean": 19.72,
+          "std": 8.96
+        },
+        "harsh": {
+          "mean": -3.24,
+          "std": 6.43
+        },
+        "operational": {
+          "mean": 4.07,
+          "std": 8.03
+        },
+        "crowded": {
+          "mean": 30.56,
+          "std": 13.05
+        }
+      },
+      "overlaps_with_prev": false,
+      "overlaps_with_next": true,
+      "final_rank": 1,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": false,
+      "p_value_vs_dwell_dual": 1.0,
+      "cohens_d_vs_dwell_dual": 0.0,
+      "tier": 1,
+      "tier_label": "Tier 1: Champion (Best Point Estimate)"
+    },
+    "Dual-Policy Uncertainty": {
+      "category": "Dual-Mode Bandit",
+      "description": "Probabilistic Arbitration between NMF Exploitation and Curiosity Exploration",
+      "mean_reward": 16.57,
+      "std_reward": 16.14,
+      "reward_95ci": [
+        15.21,
+        17.93
+      ],
+      "reward_ci_str": "+16.57 (95% CI: [+15.21, +17.93])",
+      "mean_hits": 21.3,
+      "std_hits": 14.8,
+      "hits_95ci": [
+        19.5,
+        23.0
+      ],
+      "interception_rate_pct": 16.42,
+      "mean_switches": 104.6,
+      "std_switches": 7.7,
+      "switches_95ci": [
+        103.8,
+        105.5
+      ],
+      "latency_mean_ms": 0.746,
+      "latency_p95_ms": 0.8691,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 31.5,
+          "std": 13.38
+        },
+        "hopping": {
+          "mean": 20.23,
+          "std": 8.1
+        },
+        "changing": {
+          "mean": 19.47,
+          "std": 9.3
+        },
+        "harsh": {
+          "mean": -3.52,
+          "std": 7.11
+        },
+        "operational": {
+          "mean": 2.43,
+          "std": 6.22
+        },
+        "crowded": {
+          "mean": 29.32,
+          "std": 11.74
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 2,
+      "p_value_vs_dwell_dual": 0.007146,
+      "cohens_d_vs_dwell_dual": 0.156,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Static NMF+UCB": {
+      "category": "Heuristic Fusion",
+      "description": "Additive Fusion of Low-Rank NMF Belief and Non-Stationary Discounted UCB",
+      "mean_reward": 16.54,
+      "std_reward": 17.0,
+      "reward_95ci": [
+        15.11,
+        17.97
+      ],
+      "reward_ci_str": "+16.54 (95% CI: [+15.11, +17.97])",
+      "mean_hits": 21.7,
+      "std_hits": 15.6,
+      "hits_95ci": [
+        19.9,
+        23.6
+      ],
+      "interception_rate_pct": 16.76,
+      "mean_switches": 97.9,
+      "std_switches": 9.3,
+      "switches_95ci": [
+        96.9,
+        99.0
+      ],
+      "latency_mean_ms": 8.7278,
+      "latency_p95_ms": 13.9533,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 31.65,
+          "std": 14.05
+        },
+        "hopping": {
+          "mean": 22.27,
+          "std": 10.88
+        },
+        "changing": {
+          "mean": 19.15,
+          "std": 9.87
+        },
+        "harsh": {
+          "mean": -4.03,
+          "std": 6.61
+        },
+        "operational": {
+          "mean": 1.27,
+          "std": 7.46
+        },
+        "crowded": {
+          "mean": 28.93,
+          "std": 12.33
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 3,
+      "p_value_vs_dwell_dual": 0.010644,
+      "cohens_d_vs_dwell_dual": 0.148,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Direct NMF": {
+      "category": "Matrix Factorization",
+      "description": "Non-negative Matrix Factorization (#1 in Stationary Radars: +52.3)",
+      "mean_reward": 16.25,
+      "std_reward": 20.96,
+      "reward_95ci": [
+        14.48,
+        18.03
+      ],
+      "reward_ci_str": "+16.25 (95% CI: [+14.48, +18.03])",
+      "mean_hits": 19.9,
+      "std_hits": 22.0,
+      "hits_95ci": [
+        17.8,
+        22.1
+      ],
+      "interception_rate_pct": 15.39,
+      "mean_switches": 12.4,
+      "std_switches": 10.8,
+      "switches_95ci": [
+        11.2,
+        13.6
+      ],
+      "latency_mean_ms": 0.1259,
+      "latency_p95_ms": 0.2057,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 48.47,
+          "std": 27.61
+        },
+        "hopping": {
+          "mean": 15.51,
+          "std": 8.24
+        },
+        "changing": {
+          "mean": 14.11,
+          "std": 8.29
+        },
+        "harsh": {
+          "mean": -2.03,
+          "std": 6.75
+        },
+        "operational": {
+          "mean": 3.22,
+          "std": 6.01
+        },
+        "crowded": {
+          "mean": 18.24,
+          "std": 10.77
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 4,
+      "p_value_vs_dwell_dual": 0.042389,
+      "cohens_d_vs_dwell_dual": 0.118,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "SmartScan-Omni V2 (Tuned)": {
+      "category": "Lookahead / EW Specialist",
+      "description": "Depth-2 Expectimax Lookahead + RL Value Critic + Robust PCA Filter",
+      "mean_reward": 15.37,
+      "std_reward": 19.53,
+      "reward_95ci": [
+        13.54,
+        17.2
+      ],
+      "reward_ci_str": "+15.37 (95% CI: [+13.54, +17.20])",
+      "mean_hits": 18.8,
+      "std_hits": 20.2,
+      "hits_95ci": [
+        16.5,
+        21.1
+      ],
+      "interception_rate_pct": 14.49,
+      "mean_switches": 25.0,
+      "std_switches": 14.6,
+      "switches_95ci": [
+        23.3,
+        26.6
+      ],
+      "latency_mean_ms": 12.9969,
+      "latency_p95_ms": 19.5036,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 38.39,
+          "std": 28.62
+        },
+        "hopping": {
+          "mean": 16.57,
+          "std": 6.42
+        },
+        "changing": {
+          "mean": 15.45,
+          "std": 7.94
+        },
+        "harsh": {
+          "mean": -2.14,
+          "std": 6.56
+        },
+        "operational": {
+          "mean": 1.15,
+          "std": 7.29
+        },
+        "crowded": {
+          "mean": 22.77,
+          "std": 13.86
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 5,
+      "p_value_vs_dwell_dual": 0.001093,
+      "cohens_d_vs_dwell_dual": 0.19,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Candidate 1: LinUCB Bandit": {
+      "category": "Contextual Bandit",
+      "description": "Sherman-Morrison Rank-1 Inversion + 8-Dim Context Vector + 4 Strategy Arms",
+      "mean_reward": 14.83,
+      "std_reward": 16.77,
+      "reward_95ci": [
+        13.38,
+        16.27
+      ],
+      "reward_ci_str": "+14.83 (95% CI: [+13.38, +16.27])",
+      "mean_hits": 19.3,
+      "std_hits": 16.1,
+      "hits_95ci": [
+        17.4,
+        21.1
+      ],
+      "interception_rate_pct": 14.87,
+      "mean_switches": 69.5,
+      "std_switches": 14.9,
+      "switches_95ci": [
+        67.9,
+        71.2
+      ],
+      "latency_mean_ms": 1.1025,
+      "latency_p95_ms": 1.72,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 34.72,
+          "std": 15.91
+        },
+        "hopping": {
+          "mean": 16.99,
+          "std": 8.64
+        },
+        "changing": {
+          "mean": 16.06,
+          "std": 9.13
+        },
+        "harsh": {
+          "mean": -3.74,
+          "std": 6.91
+        },
+        "operational": {
+          "mean": 1.38,
+          "std": 6.64
+        },
+        "crowded": {
+          "mean": 23.54,
+          "std": 13.71
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 6,
+      "p_value_vs_dwell_dual": 1e-06,
+      "cohens_d_vs_dwell_dual": 0.294,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "SmartScan V2-NMF": {
+      "category": "Expectimax Search",
+      "description": "Depth-2 Expectimax Tree Search over NMF Belief Distributions",
+      "mean_reward": 14.78,
+      "std_reward": 17.85,
+      "reward_95ci": [
+        13.08,
+        16.48
+      ],
+      "reward_ci_str": "+14.78 (95% CI: [+13.08, +16.48])",
+      "mean_hits": 18.5,
+      "std_hits": 18.5,
+      "hits_95ci": [
+        16.4,
+        20.6
+      ],
+      "interception_rate_pct": 14.26,
+      "mean_switches": 51.1,
+      "std_switches": 23.7,
+      "switches_95ci": [
+        48.4,
+        53.8
+      ],
+      "latency_mean_ms": 10.0012,
+      "latency_p95_ms": 16.8606,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 38.11,
+          "std": 23.2
+        },
+        "hopping": {
+          "mean": 16.63,
+          "std": 7.76
+        },
+        "changing": {
+          "mean": 13.81,
+          "std": 7.68
+        },
+        "harsh": {
+          "mean": -3.45,
+          "std": 5.73
+        },
+        "operational": {
+          "mean": 2.82,
+          "std": 6.95
+        },
+        "crowded": {
+          "mean": 20.75,
+          "std": 11.14
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 7,
+      "p_value_vs_dwell_dual": 6e-06,
+      "cohens_d_vs_dwell_dual": 0.266,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Whittle Index RMAB": {
+      "category": "Mathematical Scheduling",
+      "description": "Restless Multi-Armed Bandit with Closed-Form Whittle Index Policy",
+      "mean_reward": 13.52,
+      "std_reward": 13.83,
+      "reward_95ci": [
+        11.9,
+        15.14
+      ],
+      "reward_ci_str": "+13.52 (95% CI: [+11.90, +15.14])",
+      "mean_hits": 17.3,
+      "std_hits": 12.3,
+      "hits_95ci": [
+        15.5,
+        19.2
+      ],
+      "interception_rate_pct": 13.38,
+      "mean_switches": 122.2,
+      "std_switches": 11.1,
+      "switches_95ci": [
+        120.9,
+        123.4
+      ],
+      "latency_mean_ms": 0.3072,
+      "latency_p95_ms": 0.5932,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 20.41,
+          "std": 11.36
+        },
+        "hopping": {
+          "mean": 20.28,
+          "std": 9.24
+        },
+        "changing": {
+          "mean": 17.36,
+          "std": 8.35
+        },
+        "harsh": {
+          "mean": -2.68,
+          "std": 6.87
+        },
+        "operational": {
+          "mean": 1.43,
+          "std": 6.1
+        },
+        "crowded": {
+          "mean": 24.3,
+          "std": 12.35
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 8,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.416,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Robust PCA + PSR": {
+      "category": "Embedded Champion",
+      "description": "Inexact ALM Low-Rank / Sparse Decomposition + Predictive Spectral Recovery",
+      "mean_reward": 13.45,
+      "std_reward": 16.39,
+      "reward_95ci": [
+        11.99,
+        14.92
+      ],
+      "reward_ci_str": "+13.45 (95% CI: [+11.99, +14.92])",
+      "mean_hits": 17.1,
+      "std_hits": 16.7,
+      "hits_95ci": [
+        15.2,
+        19.1
+      ],
+      "interception_rate_pct": 13.23,
+      "mean_switches": 30.1,
+      "std_switches": 14.4,
+      "switches_95ci": [
+        28.4,
+        31.7
+      ],
+      "latency_mean_ms": 0.1769,
+      "latency_p95_ms": 0.41,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 27.37,
+          "std": 19.96
+        },
+        "hopping": {
+          "mean": 16.0,
+          "std": 7.6
+        },
+        "changing": {
+          "mean": 16.27,
+          "std": 10.78
+        },
+        "harsh": {
+          "mean": -3.51,
+          "std": 6.62
+        },
+        "operational": {
+          "mean": 1.19,
+          "std": 6.74
+        },
+        "crowded": {
+          "mean": 23.4,
+          "std": 14.75
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 9,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.358,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Candidate 3: GRU-D Recurrent": {
+      "category": "Deep Recurrent Network",
+      "description": "Che et al. (Nature 2018) Observation & Memory Decay for Missing Data",
+      "mean_reward": 12.15,
+      "std_reward": 13.01,
+      "reward_95ci": [
+        10.74,
+        13.57
+      ],
+      "reward_ci_str": "+12.15 (95% CI: [+10.74, +13.57])",
+      "mean_hits": 15.5,
+      "std_hits": 11.7,
+      "hits_95ci": [
+        13.8,
+        17.2
+      ],
+      "interception_rate_pct": 11.96,
+      "mean_switches": 91.2,
+      "std_switches": 6.5,
+      "switches_95ci": [
+        90.5,
+        91.9
+      ],
+      "latency_mean_ms": 0.1399,
+      "latency_p95_ms": 0.3421,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 19.53,
+          "std": 10.46
+        },
+        "hopping": {
+          "mean": 19.31,
+          "std": 9.53
+        },
+        "changing": {
+          "mean": 16.11,
+          "std": 8.13
+        },
+        "harsh": {
+          "mean": -3.56,
+          "std": 6.48
+        },
+        "operational": {
+          "mean": 1.03,
+          "std": 5.58
+        },
+        "crowded": {
+          "mean": 20.5,
+          "std": 10.94
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 10,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.523,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Observable Plain UCB": {
+      "category": "Discounted Bandit",
+      "description": "Discounted Upper Confidence Bound on Partially Observable Channels",
+      "mean_reward": 11.35,
+      "std_reward": 12.55,
+      "reward_95ci": [
+        10.09,
+        12.61
+      ],
+      "reward_ci_str": "+11.35 (95% CI: [+10.09, +12.61])",
+      "mean_hits": 14.8,
+      "std_hits": 9.9,
+      "hits_95ci": [
+        13.3,
+        16.3
+      ],
+      "interception_rate_pct": 11.42,
+      "mean_switches": 144.8,
+      "std_switches": 4.7,
+      "switches_95ci": [
+        144.3,
+        145.3
+      ],
+      "latency_mean_ms": 11.4973,
+      "latency_p95_ms": 17.0671,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 21.98,
+          "std": 9.91
+        },
+        "hopping": {
+          "mean": 16.68,
+          "std": 8.14
+        },
+        "changing": {
+          "mean": 16.03,
+          "std": 7.67
+        },
+        "harsh": {
+          "mean": -4.76,
+          "std": 6.63
+        },
+        "operational": {
+          "mean": 0.92,
+          "std": 4.97
+        },
+        "crowded": {
+          "mean": 17.27,
+          "std": 9.55
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 11,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.642,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Candidate 2: Boosted-Tree Dwell": {
+      "category": "Boosted Tree",
+      "description": "25-Tree GBDT Ensemble Estimating P(active next step | history)",
+      "mean_reward": 10.99,
+      "std_reward": 14.13,
+      "reward_95ci": [
+        9.54,
+        12.44
+      ],
+      "reward_ci_str": "+10.99 (95% CI: [+9.54, +12.44])",
+      "mean_hits": 14.2,
+      "std_hits": 13.9,
+      "hits_95ci": [
+        12.3,
+        16.1
+      ],
+      "interception_rate_pct": 10.95,
+      "mean_switches": 32.2,
+      "std_switches": 6.8,
+      "switches_95ci": [
+        31.4,
+        33.0
+      ],
+      "latency_mean_ms": 1.2258,
+      "latency_p95_ms": 2.0532,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 25.3,
+          "std": 20.04
+        },
+        "hopping": {
+          "mean": 14.73,
+          "std": 7.94
+        },
+        "changing": {
+          "mean": 13.81,
+          "std": 7.05
+        },
+        "harsh": {
+          "mean": -2.83,
+          "std": 5.34
+        },
+        "operational": {
+          "mean": 0.52,
+          "std": 6.76
+        },
+        "crowded": {
+          "mean": 14.41,
+          "std": 8.89
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 12,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.523,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Fixed Sequential Sweep": {
+      "category": "Sequential Baseline",
+      "description": "Deterministic Round-Robin Raster Scan Baseline",
+      "mean_reward": 9.84,
+      "std_reward": 9.96,
+      "reward_95ci": [
+        8.66,
+        11.02
+      ],
+      "reward_ci_str": "+9.84 (95% CI: [+8.66, +11.02])",
+      "mean_hits": 12.0,
+      "std_hits": 7.5,
+      "hits_95ci": [
+        10.7,
+        13.2
+      ],
+      "interception_rate_pct": 9.26,
+      "mean_switches": 149.0,
+      "std_switches": 0.0,
+      "switches_95ci": [
+        149.0,
+        149.0
+      ],
+      "latency_mean_ms": 0.0037,
+      "latency_p95_ms": 0.0129,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 16.38,
+          "std": 7.29
+        },
+        "hopping": {
+          "mean": 15.43,
+          "std": 5.94
+        },
+        "changing": {
+          "mean": 13.55,
+          "std": 5.88
+        },
+        "harsh": {
+          "mean": -2.63,
+          "std": 5.67
+        },
+        "operational": {
+          "mean": 1.03,
+          "std": 5.49
+        },
+        "crowded": {
+          "mean": 15.28,
+          "std": 7.92
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 13,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.688,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Uniform Random Scan": {
+      "category": "Random Baseline",
+      "description": "Uniform Random Channel Exploration Baseline",
+      "mean_reward": 9.4,
+      "std_reward": 9.86,
+      "reward_95ci": [
+        8.21,
+        10.59
+      ],
+      "reward_ci_str": "+9.40 (95% CI: [+8.21, +10.59])",
+      "mean_hits": 11.7,
+      "std_hits": 7.4,
+      "hits_95ci": [
+        10.5,
+        12.8
+      ],
+      "interception_rate_pct": 9.0,
+      "mean_switches": 141.8,
+      "std_switches": 3.4,
+      "switches_95ci": [
+        141.5,
+        142.2
+      ],
+      "latency_mean_ms": 0.0381,
+      "latency_p95_ms": 0.0637,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 15.29,
+          "std": 6.28
+        },
+        "hopping": {
+          "mean": 15.2,
+          "std": 6.3
+        },
+        "changing": {
+          "mean": 13.32,
+          "std": 5.9
+        },
+        "harsh": {
+          "mean": -2.68,
+          "std": 6.45
+        },
+        "operational": {
+          "mean": 0.13,
+          "std": 5.81
+        },
+        "crowded": {
+          "mean": 15.13,
+          "std": 6.97
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": false,
+      "final_rank": 14,
+      "p_value_vs_dwell_dual": 0.0,
+      "cohens_d_vs_dwell_dual": 0.669,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    }
+  },
+  "significance_tests": {
+    "SmartScan-Omni V2 (Tuned)": {
+      "delta_mean_reward": 2.8,
+      "t_statistic": 3.298,
+      "p_value_parametric": 0.001093,
+      "wilcoxon_w": 16396.0,
+      "p_value_nonparametric": 4e-05,
+      "cohens_d": 0.19,
+      "median_difference": 3.34,
+      "iqr_25_75": [
+        -5.44,
+        11.31
+      ],
+      "significance_flag": "p < 0.01 (**)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance (Medium effect)"
+    },
+    "Robust PCA + PSR": {
+      "delta_mean_reward": 4.71,
+      "t_statistic": 6.201,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 13308.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.358,
+      "median_difference": 4.27,
+      "iqr_25_75": [
+        -2.42,
+        12.38
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Candidate 1: LinUCB Bandit": {
+      "delta_mean_reward": 3.34,
+      "t_statistic": 5.095,
+      "p_value_parametric": 1e-06,
+      "wilcoxon_w": 15195.0,
+      "p_value_nonparametric": 1e-06,
+      "cohens_d": 0.294,
+      "median_difference": 2.76,
+      "iqr_25_75": [
+        -3.89,
+        10.36
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Candidate 3: GRU-D Recurrent": {
+      "delta_mean_reward": 6.01,
+      "t_statistic": 9.062,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 10782.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.523,
+      "median_difference": 5.11,
+      "iqr_25_75": [
+        -1.99,
+        13.0
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "SmartScan V2-NMF": {
+      "delta_mean_reward": 3.39,
+      "t_statistic": 4.607,
+      "p_value_parametric": 6e-06,
+      "wilcoxon_w": 15513.5,
+      "p_value_nonparametric": 3e-06,
+      "cohens_d": 0.266,
+      "median_difference": 3.21,
+      "iqr_25_75": [
+        -4.82,
+        10.75
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Dual-Policy Uncertainty": {
+      "delta_mean_reward": 1.6,
+      "t_statistic": 2.709,
+      "p_value_parametric": 0.007146,
+      "wilcoxon_w": 19056.0,
+      "p_value_nonparametric": 0.019276,
+      "cohens_d": 0.156,
+      "median_difference": 0.82,
+      "iqr_25_75": [
+        -5.66,
+        7.46
+      ],
+      "significance_flag": "p < 0.01 (**)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance (Medium effect)"
+    },
+    "Candidate 2: Boosted-Tree Dwell": {
+      "delta_mean_reward": 7.18,
+      "t_statistic": 9.058,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 9567.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.523,
+      "median_difference": 5.93,
+      "iqr_25_75": [
+        -1.05,
+        14.83
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Direct NMF": {
+      "delta_mean_reward": 1.91,
+      "t_statistic": 2.038,
+      "p_value_parametric": 0.042389,
+      "wilcoxon_w": 17525.0,
+      "p_value_nonparametric": 0.000784,
+      "cohens_d": 0.118,
+      "median_difference": 2.85,
+      "iqr_25_75": [
+        -5.8,
+        10.24
+      ],
+      "significance_flag": "p < 0.05 (*)",
+      "defensible_interpretation": "Statistically significant (p < 0.05)"
+    },
+    "Static NMF+UCB": {
+      "delta_mean_reward": 1.63,
+      "t_statistic": 2.57,
+      "p_value_parametric": 0.010644,
+      "wilcoxon_w": 19211.0,
+      "p_value_nonparametric": 0.025281,
+      "cohens_d": 0.148,
+      "median_difference": 1.32,
+      "iqr_25_75": [
+        -4.92,
+        7.88
+      ],
+      "significance_flag": "p < 0.05 (*)",
+      "defensible_interpretation": "Statistically significant (p < 0.05)"
+    },
+    "Whittle Index RMAB": {
+      "delta_mean_reward": 4.65,
+      "t_statistic": 7.206,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 12829.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.416,
+      "median_difference": 3.25,
+      "iqr_25_75": [
+        -2.5,
+        10.63
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Observable Plain UCB": {
+      "delta_mean_reward": 6.81,
+      "t_statistic": 11.122,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 8121.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.642,
+      "median_difference": 5.7,
+      "iqr_25_75": [
+        -0.42,
+        13.18
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Uniform Random Scan": {
+      "delta_mean_reward": 8.77,
+      "t_statistic": 11.587,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 7488.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.669,
+      "median_difference": 7.46,
+      "iqr_25_75": [
+        -0.62,
+        16.05
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Fixed Sequential Sweep": {
+      "delta_mean_reward": 8.33,
+      "t_statistic": 11.922,
+      "p_value_parametric": 0.0,
+      "wilcoxon_w": 7257.0,
+      "p_value_nonparametric": 0.0,
+      "cohens_d": 0.688,
+      "median_difference": 7.25,
+      "iqr_25_75": [
+        0.23,
+        15.44
+      ],
+      "significance_flag": "p < 0.001 (***)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    }
+  }
+}

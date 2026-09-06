@@ -1,0 +1,270 @@
+{
+  "run_metadata": {
+    "run_id": "smartscan_suite_20260906_125903",
+    "experiment_name": "figures_of_merit_evaluation",
+    "timestamp_utc": "2026-09-06T16:25:41.680775+00:00",
+    "git_commit": "213fb01dafe3c4c4c845b4dcebe9fc9056d509ff",
+    "seeds": [
+      10001,
+      10002,
+      10003,
+      10004,
+      10005
+    ],
+    "scenarios": [
+      "stationary",
+      "hopping",
+      "changing",
+      "harsh",
+      "operational",
+      "crowded"
+    ],
+    "temporal_gating_m": 1,
+    "temporal_gating_n": null
+  },
+  "figures_of_merit": {
+    "overall": {
+      "pd_window_mean": 6.9,
+      "pd_window_std": 3.98,
+      "burst_intercept_successes": 374,
+      "total_emitted_bursts": 5421,
+      "pd_opportunity_mean": 16.61,
+      "pd_opportunity_std": 10.7,
+      "opportunity_hit_slots": 641,
+      "total_active_signal_slots": 3860,
+      "pfa_overall_mean": 7.54,
+      "pfa_overall_std": 3.285,
+      "total_false_alarm_events": 278,
+      "empty_band_decision_opportunities": 3687,
+      "pfa_empty_noise_mean": 4.565,
+      "pure_noise_false_alarms": 147,
+      "pure_noise_opportunities": 3220,
+      "pfa_decoy_jammer_mean": 28.051,
+      "decoy_false_alarms": 131,
+      "decoy_opportunities": 467,
+      "intercept_time_error_mean": 0.52,
+      "intercept_time_error_std": 0.56,
+      "intercept_rate_per_step": 0.143,
+      "intercept_rate_per_sec": 71.2,
+      "reward_mean": 17.62,
+      "reward_std": 16.65
+    },
+    "by_scenario": {
+      "stationary": {
+        "pd_window": 10.0,
+        "pd_opportunity": 21.23,
+        "pfa_overall": 4.679,
+        "intercept_time_error": 0.25,
+        "intercept_rate_sec": 90.0,
+        "reward_mean": 28.52
+      },
+      "hopping": {
+        "pd_window": 8.11,
+        "pd_opportunity": 14.86,
+        "pfa_overall": 5.499,
+        "intercept_time_error": 0.3,
+        "intercept_rate_sec": 63.3,
+        "reward_mean": 20.88
+      },
+      "changing": {
+        "pd_window": 8.94,
+        "pd_opportunity": 19.74,
+        "pfa_overall": 3.851,
+        "intercept_time_error": 0.44,
+        "intercept_rate_sec": 87.3,
+        "reward_mean": 28.62
+      },
+      "harsh": {
+        "pd_window": 3.13,
+        "pd_opportunity": 6.08,
+        "pfa_overall": 10.431,
+        "intercept_time_error": 0.92,
+        "intercept_rate_sec": 27.3,
+        "reward_mean": -1.59
+      },
+      "operational": {
+        "pd_window": 5.25,
+        "pd_opportunity": 8.06,
+        "pfa_overall": 11.268,
+        "intercept_time_error": 0.39,
+        "intercept_rate_sec": 30.0,
+        "reward_mean": 1.08
+      },
+      "crowded": {
+        "pd_window": 7.34,
+        "pd_opportunity": 25.96,
+        "pfa_overall": 8.973,
+        "intercept_time_error": 0.82,
+        "intercept_rate_sec": 129.3,
+        "reward_mean": 28.24
+      }
+    }
+  },
+  "sensitivity": {
+    "mds_threshold_snr_db": 0.0,
+    "curve": [
+      {
+        "snr_db": -10.0,
+        "sensor_detection_events": 9,
+        "sensor_interception_opportunities": 36,
+        "sensor_pd_pct": 25.0,
+        "opportunity_hit_slots": 9,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 1.67,
+        "mean_reward": -4.18
+      },
+      {
+        "snr_db": -7.5,
+        "sensor_detection_events": 10,
+        "sensor_interception_opportunities": 37,
+        "sensor_pd_pct": 27.03,
+        "opportunity_hit_slots": 10,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 1.85,
+        "mean_reward": -4.24
+      },
+      {
+        "snr_db": -5.0,
+        "sensor_detection_events": 13,
+        "sensor_interception_opportunities": 46,
+        "sensor_pd_pct": 28.26,
+        "opportunity_hit_slots": 13,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 2.41,
+        "mean_reward": -8.1
+      },
+      {
+        "snr_db": -2.5,
+        "sensor_detection_events": 19,
+        "sensor_interception_opportunities": 43,
+        "sensor_pd_pct": 44.19,
+        "opportunity_hit_slots": 19,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 3.52,
+        "mean_reward": -1.91
+      },
+      {
+        "snr_db": 0.0,
+        "sensor_detection_events": 22,
+        "sensor_interception_opportunities": 40,
+        "sensor_pd_pct": 55.0,
+        "opportunity_hit_slots": 22,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 4.07,
+        "mean_reward": -2.48
+      },
+      {
+        "snr_db": 2.5,
+        "sensor_detection_events": 20,
+        "sensor_interception_opportunities": 33,
+        "sensor_pd_pct": 60.61,
+        "opportunity_hit_slots": 20,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 3.7,
+        "mean_reward": -0.53
+      },
+      {
+        "snr_db": 5.0,
+        "sensor_detection_events": 11,
+        "sensor_interception_opportunities": 22,
+        "sensor_pd_pct": 50.0,
+        "opportunity_hit_slots": 11,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 2.04,
+        "mean_reward": -2.87
+      },
+      {
+        "snr_db": 7.5,
+        "sensor_detection_events": 17,
+        "sensor_interception_opportunities": 32,
+        "sensor_pd_pct": 53.12,
+        "opportunity_hit_slots": 17,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 3.15,
+        "mean_reward": -4.01
+      },
+      {
+        "snr_db": 10.0,
+        "sensor_detection_events": 52,
+        "sensor_interception_opportunities": 62,
+        "sensor_pd_pct": 83.87,
+        "opportunity_hit_slots": 52,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 9.63,
+        "mean_reward": 12.75
+      },
+      {
+        "snr_db": 12.5,
+        "sensor_detection_events": 39,
+        "sensor_interception_opportunities": 44,
+        "sensor_pd_pct": 88.64,
+        "opportunity_hit_slots": 39,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 7.22,
+        "mean_reward": 8.85
+      },
+      {
+        "snr_db": 15.0,
+        "sensor_detection_events": 47,
+        "sensor_interception_opportunities": 52,
+        "sensor_pd_pct": 90.38,
+        "opportunity_hit_slots": 47,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 8.7,
+        "mean_reward": 13.43
+      },
+      {
+        "snr_db": 17.5,
+        "sensor_detection_events": 33,
+        "sensor_interception_opportunities": 39,
+        "sensor_pd_pct": 84.62,
+        "opportunity_hit_slots": 33,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 6.11,
+        "mean_reward": 9.64
+      },
+      {
+        "snr_db": 20.0,
+        "sensor_detection_events": 56,
+        "sensor_interception_opportunities": 62,
+        "sensor_pd_pct": 90.32,
+        "opportunity_hit_slots": 56,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 10.37,
+        "mean_reward": 17.24
+      },
+      {
+        "snr_db": 22.5,
+        "sensor_detection_events": 56,
+        "sensor_interception_opportunities": 61,
+        "sensor_pd_pct": 91.8,
+        "opportunity_hit_slots": 56,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 10.37,
+        "mean_reward": 17.23
+      },
+      {
+        "snr_db": 25.0,
+        "sensor_detection_events": 50,
+        "sensor_interception_opportunities": 56,
+        "sensor_pd_pct": 89.29,
+        "opportunity_hit_slots": 50,
+        "total_active_signal_slots": 540,
+        "opportunity_pd_pct": 9.26,
+        "mean_reward": 14.3
+      }
+    ]
+  },
+  "known_limitations": [
+    {
+      "limitation": "elevated_false_alarm_under_jamming",
+      "pfa_pure_noise": 0.0457,
+      "pfa_under_jamming": 0.2805,
+      "pure_noise_counts": "147/3220",
+      "jammer_counts": "131/467",
+      "elevation_factor": 6.14,
+      "temporal_m": 1,
+      "description": "Perception layer authentication false-alarms roughly 1 in 4 times (28.05%, 131/467) when a jammer/decoy is active, vs ~1 in 22 (4.57%, 147/3220) on pure background noise. Perception authentication baseline: fixed threshold tau=0.7415, single snapshot M=1. Flagged limitation: 6.14x Pfa elevation under active jamming (28.05% vs 4.57% on pure noise)."
+    }
+  ]
+}

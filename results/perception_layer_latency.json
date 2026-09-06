@@ -1,0 +1,68 @@
+{
+  "run_metadata": {
+    "run_id": "smartscan_suite_20260906_125903",
+    "experiment_name": "perception_latency_benchmark",
+    "timestamp_utc": "2026-09-06T13:48:13.571353+00:00",
+    "git_commit": "213fb01dafe3c4c4c845b4dcebe9fc9056d509ff",
+    "seeds": [],
+    "scenarios": [],
+    "num_trials": 5000,
+    "untimed_warmup_passes": 50,
+    "discarded_initial_samples": 10,
+    "warmup_correction_applied": true,
+    "device": "CPU (Single Thread)",
+    "cpu_idle_audit": {
+      "verified_idle": true,
+      "sample_1_pct": 8.0,
+      "sample_2_pct": 5.7,
+      "other_python_pids": []
+    }
+  },
+  "warmup_correction": {
+    "applied": true,
+    "untimed_passes": 50,
+    "discarded_initial_timed_samples": 10,
+    "retained_trials": 5000
+  },
+  "total_perception_us": {
+    "mean": 1304.64,
+    "std": 298.26,
+    "median_p50": 1201.6,
+    "p90": 1663.76,
+    "p95": 1805.02,
+    "p99": 2208.52,
+    "min": 1003.6,
+    "max": 10560.8
+  },
+  "total_perception_ms": {
+    "mean": 1.3046,
+    "median_p50": 1.2016,
+    "p95": 1.805,
+    "p99": 2.2085,
+    "min": 1.0036,
+    "max": 10.5608
+  },
+  "cnn_encoder_us": {
+    "mean": 1242.5,
+    "median_p50": 1140.4,
+    "p95": 1727.27,
+    "p99": 2114.81,
+    "min": 961.3,
+    "max": 10305.7
+  },
+  "prototype_matching_us": {
+    "mean": 62.14,
+    "median_p50": 56.6,
+    "p95": 95.41,
+    "p99": 177.01,
+    "min": 40.7,
+    "max": 513.9
+  },
+  "throughput_bursts_per_sec": 766.5,
+  "cpu_idle_verification": {
+    "verified_idle": true,
+    "sample_1_pct": 8.0,
+    "sample_2_pct": 5.7,
+    "other_python_pids": []
+  }
+}

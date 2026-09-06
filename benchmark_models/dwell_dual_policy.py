@@ -38,160 +38,56 @@ STRENGTHS:
 
 from __future__ import annotations
 
-import os
-from typing import Any, Dict, List, Optional
-import numpy as np
-
-from scheduler.baselines import BaseScheduler
-from scheduler.track2_runtime import Track2Runtime, DEFAULT_MODEL_PATH
+from typing import Optional
+from scheduler.smartscan_production import SmartScanProductionScheduler
+from scheduler.track2_runtime import DEFAULT_MODEL_PATH
 
 NUM_BANDS = 20
 
 
-class DwellDualPolicyScheduler(BaseScheduler):
+class DwellDualPolicyScheduler(SmartScanProductionScheduler):
     """Grand Champion RF scan scheduler for SmartScan."""
 
     def __init__(
         self,
         num_bands: int = NUM_BANDS,
         *,
-        nmf_scale: float = 1.00,
+        nmf_scale: float = 1.20,
         nmf_components: int = 4,
         nmf_window: int = 30,
         nmf_recompute_every: int = 2,
-        switch_penalty: float = 0.08,
-        dwell_inertia: float = 1.30,
-        explore_budget_prob: float = 0.12,
+        switch_penalty: float = 0.04,
+        dwell_inertia: float = 1.50,
+        explore_budget_prob: float = 0.08,
+        uncertainty_trigger_threshold: float = 0.35,
         fading_grace_steps: int = 1,
         seed: Optional[int] = None,
-        model_path: Optional[str] = None,
+        model_path: Optional[str] = DEFAULT_MODEL_PATH,
         **kwargs,
     ):
-        super().__init__(num_bands)
-        self.num_bands = num_bands
-        self.switch_penalty = float(switch_penalty)
-        self.dwell_inertia = float(dwell_inertia)
-        self.explore_budget_prob = float(explore_budget_prob)
-        self.fading_grace_steps = int(fading_grace_steps)
-        self.rng = np.random.default_rng(seed)
+        super().__init__(
+            num_bands=num_bands,
+            nmf_scale=nmf_scale,
+            nmf_components=nmf_components,
+            nmf_window=nmf_window,
+            nmf_recompute_every=nmf_recompute_every,
+            switch_penalty=switch_penalty,
+            dwell_inertia=dwell_inertia,
+            explore_budget_prob=explore_budget_prob,
+            uncertainty_trigger_threshold=uncertainty_trigger_threshold,
+            fading_grace_steps=fading_grace_steps,
+            seed=seed,
+            model_path=model_path,
+            **kwargs,
+        )
 
-        # NMF Spectral Engine
-        self.nmf_scale = float(nmf_scale)
-        self.nmf_components = int(nmf_components)
-        self.nmf_window = int(nmf_window)
-        self.nmf_recompute_every = int(nmf_recompute_every)
 
-        # Observation history buffer for spectral factorization
-        self.history_buffer = np.zeros((self.nmf_window, self.num_bands), dtype=np.float64)
-        self.buffer_idx = 0
-        self.buffer_count = 0
-        self.steps_since_nmf = 0
-        self.nmf_belief = np.full(self.num_bands, 1.0 / self.num_bands, dtype=np.float64)
-
-        # Track2 perceptual feature extractor (if weights available)
-        self.track2: Optional[Track2Runtime] = None
-        m_path = model_path or DEFAULT_MODEL_PATH
-        if os.path.exists(m_path):
-            try:
-                self.track2 = Track2Runtime(num_bands=num_bands, model_path=m_path)
-            except Exception:
-                pass
-
-        # Operational state
-        self.last_band = 0
-        self.consecutive_dwell = 0
-        self.consecutive_misses = 0
-        self.band_counts = np.zeros(self.num_bands, dtype=np.int64)
-        self.step_count = 0
-
-    def select_band(self) -> int:
-        """Select next band balancing NMF spectral belief, dwell lock, and exploration."""
-        scores = np.copy(self.nmf_belief) * self.nmf_scale
-
-        if self.track2 is not None:
-            t2_pred = self.track2.predict_scores()
-            scores += 0.50 * t2_pred
-
-        # Dwell inertia on current band
-        if self.consecutive_misses == 0:
-            dwell_factor = self.dwell_inertia / (1.0 + 0.15 * self.consecutive_dwell)
-            scores[self.last_band] += dwell_factor
-        elif self.consecutive_misses <= self.fading_grace_steps:
-            scores[self.last_band] += 0.40 * self.dwell_inertia
-
-        # Deduct switching penalties for retuning
-        if self.step_count > 0:
-            for b in range(self.num_bands):
-                if b != self.last_band:
-                    scores[b] -= self.switch_penalty
-
-        # Agile exploration check
-        if self.rng.random() < self.explore_budget_prob:
-            inv_counts = 1.0 / (1.0 + self.band_counts)
-            scout_probs = inv_counts / np.sum(inv_counts)
-            chosen_band = int(self.rng.choice(self.num_bands, p=scout_probs))
-        else:
-            chosen_band = int(np.argmax(scores))
-
-        if chosen_band == self.last_band:
-            self.consecutive_dwell += 1
-        else:
-            self.consecutive_dwell = 0
-
-        self.last_band = chosen_band
-        return chosen_band
-
-    def update(self, band: int, reward: float, observation: Dict[str, Any]):
-        """Update observation buffer and NMF matrix decomposition."""
-        self.step_count += 1
-        self.band_counts[band] += 1
-
-        detected = bool(observation.get("detected", False))
-        quality = 0.0
-        if "quality" in observation:
-            q = observation["quality"]
-            quality = float(q[0] if isinstance(q, (np.ndarray, list)) else q)
-
-        if detected:
-            self.consecutive_misses = 0
-        else:
-            self.consecutive_misses += 1
-
-        if self.track2 is not None:
-            self.track2.update(band, reward, observation)
-
-        # Update spectral history buffer
-        self.history_buffer[self.buffer_idx, band] = quality if detected else 0.01
-        self.buffer_idx = (self.buffer_idx + 1) % self.nmf_window
-        self.buffer_count = min(self.nmf_window, self.buffer_count + 1)
-        self.steps_since_nmf += 1
-
-        if self.steps_since_nmf >= self.nmf_recompute_every and self.buffer_count >= 10:
-            self._update_nmf()
-            self.steps_since_nmf = 0
-
-    def _update_nmf(self):
-        V = self.history_buffer[:self.buffer_count]
-        r = min(self.nmf_components, min(V.shape) - 1)
-        if r < 1:
-            return
-        rng = np.random.default_rng(123)
-        W = np.abs(rng.standard_normal((V.shape[0], r))) + 0.1
-        H = np.abs(rng.standard_normal((r, self.num_bands))) + 0.1
-
-        for _ in range(8):
-            num_H = W.T @ V
-            denom_H = (W.T @ W @ H) + 1e-9
-            H *= (num_H / denom_H)
-
-            num_W = V @ H.T
-            denom_W = (W @ (H @ H.T)) + 1e-9
-            W *= (num_W / denom_W)
-
-        rec = W[-1] @ H
-        total = np.sum(rec)
-        if total > 1e-8:
-            self.nmf_belief = rec / total
+def build_dwell_dual_policy(
+    num_bands: int = NUM_BANDS,
+    seed: Optional[int] = None,
+) -> DwellDualPolicyScheduler:
+    """Build the Grand Champion Dwell-Dual Policy Scheduler."""
+    return DwellDualPolicyScheduler(num_bands=num_bands, seed=seed)
 
 
 if __name__ == "__main__":
@@ -200,4 +96,4 @@ if __name__ == "__main__":
     for t in range(5):
         b = sched.select_band()
         sched.update(b, 1.0 if t % 2 == 0 else -0.1, {"detected": t % 2 == 0, "quality": [0.8]})
-        print(f"Step {t}: Selected Band {b}, Consecutive Dwell {sched.consecutive_dwell}")
+        print(f"Step {t}: Selected Band {b}, Consecutive Dwell {sched.consecutive_dwell_steps}")

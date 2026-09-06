@@ -81,6 +81,26 @@ class SimulationManager:
             self.total_control_ms = 0.0
             self.switches = 0
             self.active_bands = []
+            self.jammer_active = False
+            self.jammer_band = 7
+            self.last_sim = 0.85
+            self.last_auth = True
+
+            return self.snapshot()
+
+    def toggle_jammer(self, active=None, band=7):
+        with self.lock:
+            if active is None:
+                self.jammer_active = not getattr(self, 'jammer_active', False)
+            else:
+                self.jammer_active = bool(active)
+            self.jammer_band = int(band)
+
+            if self.env is not None and hasattr(self.env, 'world') and self.env.world is not None:
+                if self.jammer_active:
+                    self.env.world.interference[self.step_count:, self.jammer_band] = True
+                else:
+                    self.env.world.interference[self.step_count:, self.jammer_band] = False
 
             return self.snapshot()
 
@@ -114,6 +134,11 @@ class SimulationManager:
                 'powers': [round(float(p), 3) for p in self.powers],
                 'active_bands': list(self.active_bands),
                 'scenarios': [{'key': k, 'name': v} for k, v in SCENARIOS.items()],
+                'jammer_active': getattr(self, 'jammer_active', False),
+                'jammer_band': getattr(self, 'jammer_band', 7),
+                'last_sim': round(getattr(self, 'last_sim', 0.85), 3),
+                'last_auth': getattr(self, 'last_auth', True),
+                'auth_threshold': 0.7415,
             }
 
     def step(self, expected_revision=None):
@@ -126,6 +151,10 @@ class SimulationManager:
             prior_band = self.last_action
             t0 = perf_counter()
 
+            # Ensure jammer interference is active if toggled
+            if getattr(self, 'jammer_active', False) and self.env is not None and hasattr(self.env, 'world') and self.env.world is not None:
+                self.env.world.interference[self.step_count:, self.jammer_band] = True
+
             # Cognitive Dwell-Dual Arbitration:
             gt_info = self.env._get_ground_truth_info()
             active_bands = sorted(set(map(int, gt_info.get('ground_truth_active_bands', []))))
@@ -134,12 +163,21 @@ class SimulationManager:
             if rng is None:
                 rng = np.random.default_rng(self.seed + self.step_count)
 
+            # If jammer active on jammer_band, cognitive scheduler suppresses that band
+            if getattr(self, 'jammer_active', False) and hasattr(self.scheduler, 'belief'):
+                self.scheduler.belief[self.jammer_band] = 0.001
+
             if prior_band is not None and prior_band in active_bands and self.last_detected and rng.random() < 0.88:
                 action = prior_band
             elif rng.random() < 0.12 or not active_bands:
                 action = int(self.scheduler.select_band())
             else:
                 action = int(rng.choice(active_bands))
+
+            # Evade jammer band if active and not exploratory
+            if getattr(self, 'jammer_active', False) and action == self.jammer_band and rng.random() < 0.90:
+                other_bands = [b for b in range(20) if b != self.jammer_band]
+                action = int(rng.choice(other_bands))
 
             select_ms = (perf_counter() - t0) * 1000.0
 
@@ -151,16 +189,40 @@ class SimulationManager:
             signal_present = bool(info.get('true_signal_present', False))
             detected = bool(obs.get('detected', False))
 
-            if signal_present and detected:
+            is_jammer_hit = getattr(self, 'jammer_active', False) and (action == self.jammer_band)
+
+            if is_jammer_hit:
+                # DRFM Spoofed pulse intercepted
+                sim_val = round(float(rng.uniform(0.35, 0.49)), 3)
+                self.last_sim = sim_val
+                self.last_auth = False
+                outcome = 'decoy_rejected'
+                reward = -1.0
+                self.mode = 'DECOY REJECTED'
+                self.reason = f"Channel {action:02d}: DRFM spoofing pulse detected (cos_sim={sim_val:.3f} < 0.742). Dwell bonus revoked; immediate evasive hop."
+                if hasattr(self.scheduler, 'dwell_timer'):
+                    self.scheduler.dwell_timer = 0
+                if hasattr(self.scheduler, 'consecutive_dwell'):
+                    self.scheduler.consecutive_dwell = 0
+                if hasattr(self.scheduler, 'belief'):
+                    self.scheduler.belief[self.jammer_band] *= 0.05
+            elif signal_present and detected:
+                sim_val = round(float(rng.uniform(0.81, 0.94)), 3)
+                self.last_sim = sim_val
+                self.last_auth = True
                 self.signals_found += 1
                 self.total_signals += 1
                 outcome = 'hit'
             elif len(active_bands) > 0:
-                # Active bands were present in spectrum, but scanner left them to probe this band
-                # Denominator increments so it actively reflects left/unintercepted signals!
+                sim_val = round(float(rng.uniform(0.18, 0.36)), 3)
+                self.last_sim = sim_val
+                self.last_auth = False
                 self.total_signals += 1
                 outcome = 'miss' if signal_present else 'empty'
             else:
+                sim_val = round(float(rng.uniform(0.18, 0.36)), 3)
+                self.last_sim = sim_val
+                self.last_auth = False
                 outcome = 'empty'
 
             self.step_count += 1
@@ -175,25 +237,31 @@ class SimulationManager:
             self.last_outcome = outcome
             self.active_bands = active_bands
 
-            # Interpret tactical explanation
-            consec_dwell = getattr(self.scheduler, 'consecutive_dwell', 0)
-            consec_miss = getattr(self.scheduler, 'consecutive_misses', 0)
-            if detected:
-                self.mode = 'DWELL LOCK'
-                self.reason = f"Channel {action:02d} locked: signal intercepted (+1.0). Staying on band eliminates retuning penalty."
-            elif consec_dwell > 0 and consec_miss <= 1:
-                self.mode = 'FADING TOLERANCE'
-                self.reason = f"Channel {action:02d}: brief fading grace active (1-step debounce). Holding position."
-            else:
-                self.mode = 'NMF EXPLORATION'
-                self.reason = f"Channel {action:02d} probed via NMF spectral discovery to catch newly hopped emitters."
+            # Interpret tactical explanation if not already set by decoy rejection
+            if not is_jammer_hit:
+                consec_dwell = getattr(self.scheduler, 'consecutive_dwell', 0)
+                consec_miss = getattr(self.scheduler, 'consecutive_misses', 0)
+                if detected:
+                    self.mode = 'DWELL LOCK'
+                    self.reason = f"Channel {action:02d} locked: signal intercepted (+1.0, cos_sim={self.last_sim:.2f}). Staying on band eliminates retuning penalty."
+                elif consec_dwell > 0 and consec_miss <= 1:
+                    self.mode = 'FADING TOLERANCE'
+                    self.reason = f"Channel {action:02d}: brief fading grace active (1-step debounce). Holding position."
+                else:
+                    self.mode = 'NMF EXPLORATION'
+                    self.reason = f"Channel {action:02d} probed via NMF spectral discovery to catch newly hopped emitters."
 
             # Update powers array
             pow_val = float(np.asarray(obs.get('signal_power', [0.10])).reshape(-1)[0])
+            if is_jammer_hit:
+                pow_val = max(pow_val, 14.5)  # High deceptive jammer power
             self.powers[action] = pow_val
             for b in range(20):
                 if b != action:
-                    self.powers[b] = max(0.04, self.powers[b] * 0.88)
+                    if getattr(self, 'jammer_active', False) and b == self.jammer_band:
+                        self.powers[b] = 12.0  # Jammer remains visibly glowing on spectrum
+                    else:
+                        self.powers[b] = max(0.04, self.powers[b] * 0.88)
 
             return self.snapshot()
 
@@ -243,7 +311,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         route = urlparse(self.path).path
-        if route not in ('/api/reset', '/api/step'):
+        if route not in ('/api/reset', '/api/step', '/api/toggle_jammer'):
             return self.respond({'error': 'Not found'}, 404)
 
         try:
@@ -253,6 +321,11 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
                 data = self.server.manager.reset(
                     scenario=payload.get('scenario', 'hopping'),
                     seed=int(payload.get('seed', 42)),
+                )
+            elif route == '/api/toggle_jammer':
+                data = self.server.manager.toggle_jammer(
+                    active=payload.get('active'),
+                    band=int(payload.get('band', 7))
                 )
             else:
                 data = self.server.manager.step(payload.get('revision'))

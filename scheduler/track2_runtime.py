@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +40,137 @@ def _torch_load(path: Path):
         return torch.load(path, map_location="cpu")
 
 
+
+class TemporalConsistencyGate:
+    """Perception-layer temporal consistency gating filter.
+
+    Mitigates elevated false-alarm rates under jamming (where transient DRFM or
+    phase jitter spikes briefly trigger energy/cosine detection) by requiring
+    evidence persistence across M consecutive dwell steps (or M-of-N window).
+
+    Parameters:
+        m (int): Number of required persistent hits (default 1 = snapshot baseline).
+        n (int): Optional sliding window size for M-of-N gating (default None = strict consecutive dwell).
+        num_bands (int): Number of monitored frequency bands (default 20).
+    """
+
+    def __init__(self, m: int = 1, n: int | None = None, num_bands: int = NUM_BANDS):
+        self.m = max(1, int(m))
+        self.n = int(n) if n is not None else None
+        self.num_bands = int(num_bands)
+        self.consecutive_hits = np.zeros(self.num_bands, dtype=np.int32)
+        self.history: list[deque[bool]] = (
+            [deque(maxlen=self.n) for _ in range(self.num_bands)] if self.n else []
+        )
+        self.last_band: int | None = None
+
+    def reset(self):
+        self.consecutive_hits.fill(0)
+        for h in self.history:
+            h.clear()
+        self.last_band = None
+
+    def update(self, band: int, candidate_hit: bool) -> bool:
+        """Update filter state with instantaneous candidate detection and return gated confirmation."""
+        band = int(band)
+        candidate = bool(candidate_hit)
+
+        # If receiver retuned from another band, reset consecutive dwell streak on previous band
+        if self.last_band is not None and self.last_band != band:
+            self.consecutive_hits[self.last_band] = 0
+
+        self.last_band = band
+
+        if self.n is not None:
+            self.history[band].append(candidate)
+            confirmed = bool(sum(self.history[band]) >= self.m)
+        else:
+            if candidate:
+                self.consecutive_hits[band] += 1
+            else:
+                self.consecutive_hits[band] = 0
+            confirmed = bool(self.consecutive_hits[band] >= self.m)
+
+        return confirmed
+
+
+
+class PerceptionAuthenticator:
+    """Perception-layer RF signal authenticator using 1D-CNN prototype matching
+    and optional temporal consistency gating.
+
+    Evaluates baseband I/Q embeddings against learned emitter prototypes (tau = 0.7415),
+    and applies optional temporal consistency gating (M-consecutive) to suppress transient jammer decoys.
+    """
+
+    def __init__(
+        self,
+        runtime: Track2Runtime,
+        identity_threshold: float = 0.7415,
+        temporal_m: int = 1,
+        temporal_n: int | None = None,
+    ):
+        self.runtime = runtime
+        self.identity_threshold = float(identity_threshold)
+        self.gate = TemporalConsistencyGate(m=temporal_m, n=temporal_n, num_bands=NUM_BANDS)
+
+    def reset(self):
+        self.gate.reset()
+
+    def authenticate(
+        self,
+        band: int,
+        iq: np.ndarray | torch.Tensor | None = None,
+        raw_detected: bool = True,
+        custom_threshold: float | None = None,
+    ) -> dict:
+        """Authenticates an observation on band b.
+
+        Returns dict with:
+            - 'authenticated' (bool): Temporal-consistency-gated confirmation.
+            - 'snapshot_authenticated' (bool): Single-step prototype match.
+            - 'cosine_similarity' (float): Peak cosine similarity to prototypes.
+            - 'consecutive_hits' (int): Current dwell streak length on band b.
+            - 'effective_threshold' (float): The decision threshold applied.
+        """
+        band = int(band)
+        tau = float(custom_threshold if custom_threshold is not None else self.identity_threshold)
+
+        if not raw_detected or iq is None:
+            confirmed = self.gate.update(band, False)
+            return {
+                "authenticated": False,
+                "snapshot_authenticated": False,
+                "cosine_similarity": 0.0,
+                "consecutive_hits": 0,
+                "effective_threshold": tau,
+            }
+
+        iq_t = torch.as_tensor(iq, dtype=torch.float32, device=self.runtime.device)
+        if iq_t.ndim == 2:
+            iq_t = iq_t.unsqueeze(0)
+        with torch.no_grad():
+            emb = self.runtime.identity_model(iq_t)
+            sims = torch.matmul(self.runtime.prototype_matrix, emb.squeeze(0))
+            best_sim = float(sims.max().item())
+
+        snapshot_match = (best_sim >= tau)
+        confirmed = self.gate.update(band, snapshot_match)
+
+        hits = (
+            int(self.gate.consecutive_hits[band])
+            if self.gate.n is None
+            else int(sum(self.gate.history[band]))
+        )
+        return {
+            "authenticated": confirmed,
+            "snapshot_authenticated": snapshot_match,
+            "cosine_similarity": best_sim,
+            "consecutive_hits": hits,
+            "effective_threshold": tau,
+        }
+
+
 class Track2Runtime:
     """Loads frozen Track 2 weights and maintains episode-local emitter tracks."""
 
@@ -49,6 +181,8 @@ class Track2Runtime:
         max_scan_age: float = DEFAULT_MAX_SCAN_AGE,
         miss_decay: float = DEFAULT_MISS_DECAY,
         miss_belief_discount: float = DEFAULT_MISS_BELIEF_DISCOUNT,
+        temporal_m: int = 1,
+        temporal_n: int | None = None,
     ):
         self.model_path = Path(model_path)
         if not self.model_path.is_file():
@@ -67,6 +201,9 @@ class Track2Runtime:
         self.miss_belief_discount = float(
             np.clip(miss_belief_discount, 0.0, 1.0)
         )
+        self.temporal_m = int(temporal_m)
+        self.temporal_n = int(temporal_n) if temporal_n is not None else None
+        self.gate = TemporalConsistencyGate(m=self.temporal_m, n=self.temporal_n, num_bands=NUM_BANDS)
         self.bundle = _torch_load(self.model_path)
         self._load_frozen_models()
         self.current_time = 0.0
@@ -162,7 +299,32 @@ class Track2Runtime:
         self.recent_miss = np.zeros(NUM_BANDS, dtype=np.float32)
         self.recent_hit = np.zeros(NUM_BANDS, dtype=np.float32)
         self.prediction_error = np.zeros(NUM_BANDS, dtype=np.float32)
+        if hasattr(self, "gate"):
+            self.gate.reset()
         return self.get_band_belief()
+
+    def authenticate_observation(
+        self,
+        band: int,
+        iq: np.ndarray | torch.Tensor | None = None,
+        threshold: float | None = None,
+        raw_detected: bool = True,
+    ) -> dict:
+        """Evaluate prototype cosine similarity against authentication threshold (tau = 0.7415) and temporal gating."""
+        tau = float(threshold if threshold is not None else self.identity_threshold)
+        authenticator = PerceptionAuthenticator(
+            runtime=self,
+            identity_threshold=tau,
+            temporal_m=self.temporal_m,
+            temporal_n=self.temporal_n,
+        )
+        authenticator.gate = self.gate
+        return authenticator.authenticate(
+            band=band,
+            iq=iq,
+            raw_detected=raw_detected,
+            custom_threshold=threshold,
+        )
 
     def update(self, obs: dict, timestamp: float):
         self.current_time = float(timestamp)
