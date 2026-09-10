@@ -1,7 +1,2 @@
-gymnasium>=0.29,<2
-numpy>=1.26,<3
+﻿numpy>=1.26,<3
 pytest>=8,<10
-stable-baselines3>=2.3,<3
-torch>=2.2
-h5py>=3.10,<4
-scipy>=1.11,<2

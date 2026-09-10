@@ -12,11 +12,6 @@ import numpy as np
 
 from scheduler.baselines import BaseScheduler
 from scheduler.track2_core import FEATURE_DIM, NUM_BANDS
-from scheduler.track2_runtime import (
-    DEFAULT_MAX_SCAN_AGE,
-    DEFAULT_MODEL_PATH,
-    Track2Runtime,
-)
 
 
 def _vector(state: dict, name: str, length: int) -> np.ndarray:
@@ -33,9 +28,9 @@ class WorldModelUCBScheduler(BaseScheduler):
         self,
         num_bands: int = NUM_BANDS,
         *,
-        runtime: Track2Runtime | None = None,
-        model_path=DEFAULT_MODEL_PATH,
-        max_scan_age: float = DEFAULT_MAX_SCAN_AGE,
+        runtime = None,
+        model_path = None,
+        max_scan_age: float = 30.0,
         decay: float = 0.985,
         value_learning_rate: float = 0.20,
         exploration_scale: float = 0.75,
@@ -45,10 +40,18 @@ class WorldModelUCBScheduler(BaseScheduler):
         if num_bands != NUM_BANDS:
             raise ValueError(f"World-Model UCB requires exactly {NUM_BANDS} bands")
         super().__init__(num_bands)
-        self.runtime = runtime or Track2Runtime(
-            model_path=model_path,
-            max_scan_age=max_scan_age,
-        )
+        if runtime is not None:
+            self.runtime = runtime
+        else:
+            try:
+                from scheduler.track2_runtime import Track2Runtime, DEFAULT_MODEL_PATH, DEFAULT_MAX_SCAN_AGE
+                self.runtime = Track2Runtime(
+                    model_path=model_path or DEFAULT_MODEL_PATH,
+                    max_scan_age=max_scan_age or DEFAULT_MAX_SCAN_AGE,
+                )
+            except (ImportError, Exception):
+                from scheduler.observation_runtime import ObservationOnlyRuntime
+                self.runtime = ObservationOnlyRuntime(num_bands)
         self.decay = float(decay)
         self.value_learning_rate = float(value_learning_rate)
         self.exploration_scale = float(exploration_scale)
