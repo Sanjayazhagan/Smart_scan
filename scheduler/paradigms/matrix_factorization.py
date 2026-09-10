@@ -1,4 +1,4 @@
-﻿"""Non-Negative Matrix Factorization (NMF) Spectrum Scheduler.
+"""Non-Negative Matrix Factorization (NMF) Spectrum Scheduler.
 
 Decomposes continuous channel power history V ~ W * H into:
 - W (20 x K): Spatial emitter frequency basis signatures
@@ -118,8 +118,8 @@ class NMFScheduler:
         if obs_dict is not None:
             detected = int(obs_dict.get("detected", 0))
             raw_power = obs_dict.get("signal_power", 0.0)
-            if isinstance(raw_power, np.ndarray):
-                power = float(raw_power.item()) if raw_power.size == 1 else float(raw_power[0])
+            if isinstance(raw_power, (np.ndarray, list, tuple)):
+                power = float(raw_power[0]) if len(raw_power) > 0 else 0.0
             else:
                 power = float(raw_power)
 
