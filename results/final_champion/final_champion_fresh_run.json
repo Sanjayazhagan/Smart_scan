@@ -1,0 +1,47 @@
+{
+  "dataset": "C:\\Users\\asus\\Documents\\SMART SCAN\\tests\\synthetic_turing_style",
+  "uses_iq": false,
+  "seeds_per_file": 50,
+  "num_files": 6,
+  "paired_sets": 300,
+  "scheduler_episodes": 600,
+  "total_decisions": 90000,
+  "summary": {
+    "B_interruptible": {
+      "episodes": 300,
+      "mean_reward": 113.20199999999997,
+      "reward_ci95": [
+        109.09102766141534,
+        117.3129723385846
+      ],
+      "hit_step_rate_pct": 82.24416471947941,
+      "pulse_capture_rate_pct": 34.82604770667685,
+      "mean_switches": 37.99666666666667,
+      "mean_dwell_decisions": 110.01666666666667,
+      "mean_select_ms": 0.053361811100168986
+    },
+    "FINAL_smart_stale": {
+      "episodes": 300,
+      "mean_reward": 113.87699999999997,
+      "reward_ci95": [
+        109.71420221880598,
+        118.03979778119395
+      ],
+      "hit_step_rate_pct": 82.80947714881536,
+      "pulse_capture_rate_pct": 34.847748342071455,
+      "mean_switches": 37.276666666666664,
+      "mean_dwell_decisions": 110.75333333333333,
+      "mean_select_ms": 0.07571886670711037
+    }
+  },
+  "paired_final_minus_B": {
+    "mean_delta_reward": 0.6750000000000047,
+    "delta_ci95": [
+      -0.038281957997249316,
+      1.3882819579972587
+    ],
+    "paired_p": 0.06354007493057287,
+    "better_episode_pct": 34.333333333333336,
+    "worse_episode_pct": 17.0
+  }
+}

@@ -1,12 +1,14 @@
-"""SmartScan Production Package.
+"""SmartScan scheduler package.
 
-Primary Production Architecture:
-- SmartScanProductionScheduler (alias: DwellDualPolicyScheduler):
-  The empirically validated #1 architecture across all 14 models, 6 operational
-  defense scenarios, and 189,000 real-time decisions (+17.72 mean reward, 0.20 ms latency).
+Production champion:
+    SmartScanProductionScheduler / DwellDualPolicyScheduler
 
-All comparative research, ablation, and baseline architectures (SmartScan-Omni,
-Expectimax, MoE, Whittle RMAB, etc.) have been isolated into scheduler.research_models.
+The production implementation is PDW/observation-only and uses:
+- interruptible recurring stale-band coverage,
+- smart urgency ordering of stale bands,
+- NMF exploitation,
+- uncertainty-driven scouting,
+- active-signal dwell inertia.
 """
 
 from scheduler.smartscan_production import (
@@ -14,7 +16,4 @@ from scheduler.smartscan_production import (
     DwellDualPolicyScheduler,
 )
 
-__all__ = [
-    "SmartScanProductionScheduler",
-    "DwellDualPolicyScheduler",
-]
+__all__ = ["SmartScanProductionScheduler", "DwellDualPolicyScheduler"]

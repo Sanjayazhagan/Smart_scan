@@ -16,6 +16,18 @@ from benchmark_models.grud_recurrent import build_grud_scheduler, GRUDSpectrumSc
 from benchmark_models.boosted_tree_dwell import build_boosted_tree_dwell, BoostedTreeDwellScheduler
 from benchmark_models.nmf_expectimax import build_nmf_expectimax, NMFExpectimaxScheduler
 from benchmark_models.dual_policy_uncertainty import build_dual_policy_uncertainty, DualPolicyUncertaintyScheduler
+from benchmark_models.dwell_dual_expectimax import build_dwell_dual_expectimax, DwellDualExpectimaxScheduler
+from benchmark_models.dwell_dual_thompson import build_dwell_dual_thompson, DwellDualThompsonScheduler
+from benchmark_models.dwell_dual_whittle import build_dwell_dual_whittle, DwellDualWhittleScheduler
+from benchmark_models.dwell_dual_conformal import build_dwell_dual_conformal, DwellDualConformalScheduler
+from benchmark_models.dwell_dual_hawkes import build_dwell_dual_hawkes, DwellDualHawkesScheduler
+from benchmark_models.dwell_dual_pri import build_dwell_dual_pri, DwellDualPRIScheduler
+from benchmark_models.dwell_dual_cfar import build_dwell_dual_cfar, DwellDualCFARScheduler
+from benchmark_models.dwell_dual_markov_hop import build_dwell_dual_markov_hop, DwellDualMarkovHopScheduler
+from benchmark_models.dwell_dual_survival import build_dwell_dual_survival, DwellDualSurvivalScheduler
+from benchmark_models.dwell_dual_multiscale_hawkes import build_dwell_dual_multiscale_hawkes, DwellDualMultiScaleHawkesScheduler
+from benchmark_models.dwell_dual_hawkes_cfar import build_dwell_dual_hawkes_cfar, DwellDualHawkesCFARScheduler
+from benchmark_models.hysteresis_meta_controller import HysteresisMetaController
 from benchmark_models.mathematical_baselines import (
     build_direct_nmf,
     build_static_nmf_ucb,
@@ -167,6 +179,126 @@ MODEL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "category": "Sequential Baseline",
         "description": "Deterministic Round-Robin Raster Scan Baseline",
         "file": "benchmark_models/mathematical_baselines.py",
+    },
+    "Dwell-Dual + Expectimax": {
+        "builder": lambda n, s: build_dwell_dual_expectimax(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.25,
+        "category": "Candidate Upgrade",
+        "description": "Hierarchical Dwell-Dual + Selective Shortlist Depth-2 Expectimax Lookahead",
+        "file": "benchmark_models/dwell_dual_expectimax.py",
+    },
+    "Dwell-Dual + Thompson": {
+        "builder": lambda n, s: build_dwell_dual_thompson(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Discounted Beta-Bernoulli Thompson Sampling Exploration",
+        "file": "benchmark_models/dwell_dual_thompson.py",
+    },
+    "Dwell-Dual + Whittle RMAB": {
+        "builder": lambda n, s: build_dwell_dual_whittle(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Restless Multi-Armed Bandit Whittle Age-of-Information Indexing",
+        "file": "benchmark_models/dwell_dual_whittle.py",
+    },
+    "Hysteresis Meta-Controller": {
+        "builder": lambda n, s: HysteresisMetaController(n),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.20,
+        "category": "Meta-Controller",
+        "description": "Bandit of Bandits Meta-Controller with 15-Step Hysteresis Lock Window",
+        "file": "benchmark_models/hysteresis_meta_controller.py",
+    },
+    "Dwell-Dual + Conformal Sets": {
+        "builder": lambda n, s: build_dwell_dual_conformal(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Online Conformal Prediction Risk Control Sets",
+        "file": "benchmark_models/dwell_dual_conformal.py",
+    },
+    "Dwell-Dual + Hawkes Process": {
+        "builder": lambda n, s: build_dwell_dual_hawkes(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Hawkes Self-Exciting Temporal Point Process Burst Modeling",
+        "file": "benchmark_models/dwell_dual_hawkes.py",
+    },
+    "Dwell-Dual + PRI Tracker": {
+        "builder": lambda n, s: build_dwell_dual_pri(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Pulse Repetition Interval (PRI) Inter-Arrival Rendezvous",
+        "file": "benchmark_models/dwell_dual_pri.py",
+    },
+    "Dwell-Dual + CFAR Gate": {
+        "builder": lambda n, s: build_dwell_dual_cfar(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Adaptive CFAR Noise Floor & Clutter Defense Gate",
+        "file": "benchmark_models/dwell_dual_cfar.py",
+    },
+    "Dwell-Dual + Markov Hopping": {
+        "builder": lambda n, s: build_dwell_dual_markov_hop(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Empirical Markov Hopping Transition Matrix Predictor",
+        "file": "benchmark_models/dwell_dual_markov_hop.py",
+    },
+    "Dwell-Dual + Survival Dwell": {
+        "builder": lambda n, s: build_dwell_dual_survival(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Weibull Hazard Rate Beam Departure Survival Dwell",
+        "file": "benchmark_models/dwell_dual_survival.py",
+    },
+    "Dwell-Dual + MultiScale Hawkes": {
+        "builder": lambda n, s: build_dwell_dual_multiscale_hawkes(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Multi-Scale Dual-Horizon (Intra-Burst & Scan Revisit) Hawkes",
+        "file": "benchmark_models/dwell_dual_multiscale_hawkes.py",
+    },
+    "Dwell-Dual + Hawkes-CFAR Hybrid": {
+        "builder": lambda n, s: build_dwell_dual_hawkes_cfar(n, s),
+        "rank": 99,
+        "mean_reward": 0.0,
+        "hit_rate_pct": 0.0,
+        "latency_ms": 0.15,
+        "category": "Candidate Upgrade",
+        "description": "Dwell-Dual + Hawkes Self-Exciting Burst Dynamics + Adaptive CFAR Noise Defense",
+        "file": "benchmark_models/dwell_dual_hawkes_cfar.py",
     },
 }
 

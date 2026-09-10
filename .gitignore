@@ -15,3 +15,8 @@ warmup_*_diagnostic.json
 warmup_*_pilot.json
 warmup_preliminary_validation.json
 dashboard/backups/
+
+# Keep final reproducibility evidence even though benchmark_*.json is generally ignored.
+!results/final_champion/*.json
+.cache_*
+*.cache_*.json

@@ -1,0 +1,721 @@
+{
+  "metadata": {
+    "num_seeds": 30,
+    "seeds": [
+      10001,
+      10002,
+      10003,
+      10004,
+      10005,
+      10006,
+      10007,
+      10008,
+      10009,
+      10010,
+      10011,
+      10012,
+      10013,
+      10014,
+      10015,
+      10016,
+      10017,
+      10018,
+      10019,
+      10020,
+      10021,
+      10022,
+      10023,
+      10024,
+      10025,
+      10026,
+      10027,
+      10028,
+      10029,
+      10030
+    ],
+    "scenarios": [
+      "stationary",
+      "hopping",
+      "changing",
+      "harsh",
+      "operational",
+      "crowded"
+    ],
+    "episode_length": 150,
+    "methodology": "Scenario-aggregated scores per seed (N=30, df=29), Holm-Bonferroni correction, Seed Win Rate",
+    "timestamp": "2026-09-10T07:14:20Z"
+  },
+  "leaderboard": {
+    "Dwell-Dual Policy (Champion)": {
+      "model_name": "Dwell-Dual Policy (Champion)",
+      "category": "Grand Champion",
+      "mean_reward": 19.34,
+      "std_reward": 5.69,
+      "reward_95ci": [
+        17.22,
+        21.47
+      ],
+      "mean_hits": 24.6,
+      "interception_rate_pct": 16.43,
+      "mean_switches": 75.4,
+      "mean_latency_ms": 0.2401,
+      "scenario_means": {
+        "stationary": 37.16,
+        "hopping": 23.73,
+        "changing": 21.13,
+        "harsh": -1.68,
+        "operational": 2.95,
+        "crowded": 32.78
+      },
+      "final_rank": 1
+    },
+    "Dwell-Dual + Whittle RMAB": {
+      "model_name": "Dwell-Dual + Whittle RMAB",
+      "category": "Candidate Upgrade",
+      "mean_reward": 16.84,
+      "std_reward": 5.33,
+      "reward_95ci": [
+        14.85,
+        18.83
+      ],
+      "mean_hits": 22.0,
+      "interception_rate_pct": 14.69,
+      "mean_switches": 75.7,
+      "mean_latency_ms": 0.3079,
+      "scenario_means": {
+        "stationary": 41.72,
+        "hopping": 18.04,
+        "changing": 17.23,
+        "harsh": -5.38,
+        "operational": 1.88,
+        "crowded": 27.54
+      },
+      "final_rank": 2
+    },
+    "Dwell-Dual + Thompson": {
+      "model_name": "Dwell-Dual + Thompson",
+      "category": "Candidate Upgrade",
+      "mean_reward": 16.78,
+      "std_reward": 4.91,
+      "reward_95ci": [
+        14.95,
+        18.61
+      ],
+      "mean_hits": 21.7,
+      "interception_rate_pct": 14.46,
+      "mean_switches": 72.7,
+      "mean_latency_ms": 0.3431,
+      "scenario_means": {
+        "stationary": 42.63,
+        "hopping": 18.12,
+        "changing": 18.08,
+        "harsh": -3.45,
+        "operational": -0.58,
+        "crowded": 25.89
+      },
+      "final_rank": 3
+    },
+    "Static NMF+UCB": {
+      "model_name": "Static NMF+UCB",
+      "category": "Heuristic Fusion",
+      "mean_reward": 16.77,
+      "std_reward": 4.08,
+      "reward_95ci": [
+        15.25,
+        18.29
+      ],
+      "mean_hits": 21.9,
+      "interception_rate_pct": 14.6,
+      "mean_switches": 98.0,
+      "mean_latency_ms": 4.1539,
+      "scenario_means": {
+        "stationary": 32.09,
+        "hopping": 22.21,
+        "changing": 19.62,
+        "harsh": -4.89,
+        "operational": 1.08,
+        "crowded": 30.51
+      },
+      "final_rank": 4
+    },
+    "Direct NMF": {
+      "model_name": "Direct NMF",
+      "category": "Matrix Factorization",
+      "mean_reward": 16.72,
+      "std_reward": 6.37,
+      "reward_95ci": [
+        14.34,
+        19.1
+      ],
+      "mean_hits": 20.2,
+      "interception_rate_pct": 13.49,
+      "mean_switches": 11.5,
+      "mean_latency_ms": 0.1003,
+      "scenario_means": {
+        "stationary": 49.69,
+        "hopping": 15.84,
+        "changing": 14.42,
+        "harsh": -2.18,
+        "operational": 2.55,
+        "crowded": 19.99
+      },
+      "final_rank": 5
+    },
+    "Dual-Policy Uncertainty": {
+      "model_name": "Dual-Policy Uncertainty",
+      "category": "Dual-Mode Bandit",
+      "mean_reward": 16.59,
+      "std_reward": 4.4,
+      "reward_95ci": [
+        14.95,
+        18.24
+      ],
+      "mean_hits": 21.5,
+      "interception_rate_pct": 14.33,
+      "mean_switches": 104.7,
+      "mean_latency_ms": 0.3468,
+      "scenario_means": {
+        "stationary": 31.42,
+        "hopping": 20.75,
+        "changing": 18.98,
+        "harsh": -4.0,
+        "operational": 2.92,
+        "crowded": 29.47
+      },
+      "final_rank": 6
+    },
+    "SmartScan V2-NMF": {
+      "model_name": "SmartScan V2-NMF",
+      "category": "Expectimax Search",
+      "mean_reward": 15.7,
+      "std_reward": 5.59,
+      "reward_95ci": [
+        13.62,
+        17.79
+      ],
+      "mean_hits": 18.9,
+      "interception_rate_pct": 12.63,
+      "mean_switches": 51.1,
+      "mean_latency_ms": 4.9183,
+      "scenario_means": {
+        "stationary": 39.36,
+        "hopping": 16.23,
+        "changing": 14.33,
+        "harsh": -1.63,
+        "operational": 3.34,
+        "crowded": 22.59
+      },
+      "final_rank": 7
+    },
+    "Hysteresis Meta-Controller": {
+      "model_name": "Hysteresis Meta-Controller",
+      "category": "Meta-Controller",
+      "mean_reward": 15.67,
+      "std_reward": 5.74,
+      "reward_95ci": [
+        13.52,
+        17.81
+      ],
+      "mean_hits": 20.4,
+      "interception_rate_pct": 13.57,
+      "mean_switches": 93.8,
+      "mean_latency_ms": 0.1343,
+      "scenario_means": {
+        "stationary": 34.79,
+        "hopping": 17.89,
+        "changing": 17.26,
+        "harsh": -1.72,
+        "operational": 1.12,
+        "crowded": 24.65
+      },
+      "final_rank": 8
+    },
+    "Candidate 1: LinUCB Bandit": {
+      "model_name": "Candidate 1: LinUCB Bandit",
+      "category": "Contextual Bandit",
+      "mean_reward": 15.47,
+      "std_reward": 4.83,
+      "reward_95ci": [
+        13.67,
+        17.28
+      ],
+      "mean_hits": 20.1,
+      "interception_rate_pct": 13.37,
+      "mean_switches": 70.4,
+      "mean_latency_ms": 0.8747,
+      "scenario_means": {
+        "stationary": 36.21,
+        "hopping": 17.26,
+        "changing": 16.04,
+        "harsh": -2.99,
+        "operational": 0.09,
+        "crowded": 26.23
+      },
+      "final_rank": 9
+    },
+    "SmartScan-Omni V2 (Tuned)": {
+      "model_name": "SmartScan-Omni V2 (Tuned)",
+      "category": "Lookahead / EW Specialist",
+      "mean_reward": 14.83,
+      "std_reward": 6.45,
+      "reward_95ci": [
+        12.42,
+        17.24
+      ],
+      "mean_hits": 18.4,
+      "interception_rate_pct": 12.25,
+      "mean_switches": 20.5,
+      "mean_latency_ms": 5.5053,
+      "scenario_means": {
+        "stationary": 37.39,
+        "hopping": 17.25,
+        "changing": 16.22,
+        "harsh": -4.31,
+        "operational": 0.47,
+        "crowded": 21.95
+      },
+      "final_rank": 10
+    },
+    "Dwell-Dual + Expectimax": {
+      "model_name": "Dwell-Dual + Expectimax",
+      "category": "Candidate Upgrade",
+      "mean_reward": 14.39,
+      "std_reward": 4.41,
+      "reward_95ci": [
+        12.74,
+        16.04
+      ],
+      "mean_hits": 18.4,
+      "interception_rate_pct": 12.24,
+      "mean_switches": 59.9,
+      "mean_latency_ms": 0.4157,
+      "scenario_means": {
+        "stationary": 34.2,
+        "hopping": 16.92,
+        "changing": 15.18,
+        "harsh": -4.4,
+        "operational": 1.49,
+        "crowded": 22.94
+      },
+      "final_rank": 11
+    },
+    "Whittle Index RMAB": {
+      "model_name": "Whittle Index RMAB",
+      "category": "Mathematical Scheduling",
+      "mean_reward": 13.86,
+      "std_reward": 5.34,
+      "reward_95ci": [
+        11.87,
+        15.86
+      ],
+      "mean_hits": 17.8,
+      "interception_rate_pct": 11.86,
+      "mean_switches": 121.7,
+      "mean_latency_ms": 0.1733,
+      "scenario_means": {
+        "stationary": 20.92,
+        "hopping": 20.81,
+        "changing": 17.25,
+        "harsh": -1.04,
+        "operational": 0.84,
+        "crowded": 24.39
+      },
+      "final_rank": 12
+    },
+    "Robust PCA + PSR": {
+      "model_name": "Robust PCA + PSR",
+      "category": "Embedded Champion",
+      "mean_reward": 13.22,
+      "std_reward": 4.72,
+      "reward_95ci": [
+        11.46,
+        14.98
+      ],
+      "mean_hits": 16.8,
+      "interception_rate_pct": 11.2,
+      "mean_switches": 30.5,
+      "mean_latency_ms": 0.1021,
+      "scenario_means": {
+        "stationary": 23.62,
+        "hopping": 16.36,
+        "changing": 15.73,
+        "harsh": -3.64,
+        "operational": 1.24,
+        "crowded": 26.04
+      },
+      "final_rank": 13
+    },
+    "Candidate 3: GRU-D Recurrent": {
+      "model_name": "Candidate 3: GRU-D Recurrent",
+      "category": "Deep Recurrent Network",
+      "mean_reward": 12.44,
+      "std_reward": 4.34,
+      "reward_95ci": [
+        10.82,
+        14.06
+      ],
+      "mean_hits": 16.0,
+      "interception_rate_pct": 10.66,
+      "mean_switches": 91.3,
+      "mean_latency_ms": 0.1136,
+      "scenario_means": {
+        "stationary": 19.87,
+        "hopping": 19.23,
+        "changing": 16.49,
+        "harsh": -4.03,
+        "operational": 1.84,
+        "crowded": 21.21
+      },
+      "final_rank": 14
+    },
+    "Observable Plain UCB": {
+      "model_name": "Observable Plain UCB",
+      "category": "Discounted Bandit",
+      "mean_reward": 11.41,
+      "std_reward": 3.91,
+      "reward_95ci": [
+        9.95,
+        12.87
+      ],
+      "mean_hits": 14.8,
+      "interception_rate_pct": 9.9,
+      "mean_switches": 145.0,
+      "mean_latency_ms": 5.5282,
+      "scenario_means": {
+        "stationary": 22.05,
+        "hopping": 16.95,
+        "changing": 16.03,
+        "harsh": -4.38,
+        "operational": 0.77,
+        "crowded": 17.04
+      },
+      "final_rank": 15
+    },
+    "Candidate 2: Boosted-Tree Dwell": {
+      "model_name": "Candidate 2: Boosted-Tree Dwell",
+      "category": "Boosted Tree",
+      "mean_reward": 11.23,
+      "std_reward": 5.05,
+      "reward_95ci": [
+        9.34,
+        13.12
+      ],
+      "mean_hits": 14.4,
+      "interception_rate_pct": 9.59,
+      "mean_switches": 33.0,
+      "mean_latency_ms": 0.6241,
+      "scenario_means": {
+        "stationary": 23.96,
+        "hopping": 15.01,
+        "changing": 14.13,
+        "harsh": -2.32,
+        "operational": 0.01,
+        "crowded": 16.6
+      },
+      "final_rank": 16
+    },
+    "Fixed Sequential Sweep": {
+      "model_name": "Fixed Sequential Sweep",
+      "category": "Sequential Baseline",
+      "mean_reward": 9.82,
+      "std_reward": 4.15,
+      "reward_95ci": [
+        8.27,
+        11.37
+      ],
+      "mean_hits": 12.2,
+      "interception_rate_pct": 8.11,
+      "mean_switches": 149.0,
+      "mean_latency_ms": 0.0028,
+      "scenario_means": {
+        "stationary": 16.51,
+        "hopping": 16.07,
+        "changing": 14.17,
+        "harsh": -2.64,
+        "operational": -0.23,
+        "crowded": 15.02
+      },
+      "final_rank": 17
+    },
+    "Uniform Random Scan": {
+      "model_name": "Uniform Random Scan",
+      "category": "Random Baseline",
+      "mean_reward": 9.27,
+      "std_reward": 4.74,
+      "reward_95ci": [
+        7.5,
+        11.04
+      ],
+      "mean_hits": 12.0,
+      "interception_rate_pct": 7.97,
+      "mean_switches": 141.9,
+      "mean_latency_ms": 0.0182,
+      "scenario_means": {
+        "stationary": 15.67,
+        "hopping": 14.64,
+        "changing": 13.07,
+        "harsh": -3.47,
+        "operational": -0.58,
+        "crowded": 16.31
+      },
+      "final_rank": 18
+    }
+  },
+  "pairwise_tests_vs_dwell_dual": {
+    "SmartScan-Omni V2 (Tuned)": {
+      "mean_difference": 4.515,
+      "median_difference": 3.649,
+      "cohens_d": 0.66,
+      "paired_t_stat": 3.616,
+      "p_value_t_raw": 0.0011214897657110695,
+      "p_value_t_holm": 0.007260797487622622,
+      "p_value_wilcoxon_raw": 0.000689360557392875,
+      "p_value_wilcoxon_holm": 0.006204245016535875,
+      "dwell_dual_wins": 25,
+      "dwell_dual_losses": 5,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 83.33,
+      "significant_after_holm": true
+    },
+    "Robust PCA + PSR": {
+      "mean_difference": 6.121,
+      "median_difference": 6.953,
+      "cohens_d": 1.167,
+      "paired_t_stat": 6.391,
+      "p_value_t_raw": 5.481454021224395e-07,
+      "p_value_t_holm": 6.577744825469274e-06,
+      "p_value_wilcoxon_raw": 2.0659051142651634e-05,
+      "p_value_wilcoxon_holm": 0.0002479086137118196,
+      "dwell_dual_wins": 26,
+      "dwell_dual_losses": 4,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 86.67,
+      "significant_after_holm": true
+    },
+    "Candidate 1: LinUCB Bandit": {
+      "mean_difference": 3.871,
+      "median_difference": 5.654,
+      "cohens_d": 0.684,
+      "paired_t_stat": 3.744,
+      "p_value_t_raw": 0.000798332400372649,
+      "p_value_t_holm": 0.006386659202981192,
+      "p_value_wilcoxon_raw": 0.0020338050502259884,
+      "p_value_wilcoxon_holm": 0.014236635351581919,
+      "dwell_dual_wins": 23,
+      "dwell_dual_losses": 7,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 76.67,
+      "significant_after_holm": true
+    },
+    "Candidate 3: GRU-D Recurrent": {
+      "mean_difference": 6.908,
+      "median_difference": 6.882,
+      "cohens_d": 1.324,
+      "paired_t_stat": 7.253,
+      "p_value_t_raw": 5.4847662648632725e-08,
+      "p_value_t_holm": 7.130196144322254e-07,
+      "p_value_wilcoxon_raw": 1.2977273282858331e-05,
+      "p_value_wilcoxon_holm": 0.00016870455267715831,
+      "dwell_dual_wins": 27,
+      "dwell_dual_losses": 3,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 90.0,
+      "significant_after_holm": true
+    },
+    "SmartScan V2-NMF": {
+      "mean_difference": 3.641,
+      "median_difference": 4.372,
+      "cohens_d": 0.765,
+      "paired_t_stat": 4.188,
+      "p_value_t_raw": 0.00023943625164263727,
+      "p_value_t_holm": 0.0021549262647837355,
+      "p_value_wilcoxon_raw": 0.0008004494537642678,
+      "p_value_wilcoxon_holm": 0.006403595630114142,
+      "dwell_dual_wins": 24,
+      "dwell_dual_losses": 6,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 80.0,
+      "significant_after_holm": true
+    },
+    "Dual-Policy Uncertainty": {
+      "mean_difference": 2.752,
+      "median_difference": 2.447,
+      "cohens_d": 0.574,
+      "paired_t_stat": 3.145,
+      "p_value_t_raw": 0.0038135261554664607,
+      "p_value_t_holm": 0.019067630777332305,
+      "p_value_wilcoxon_raw": 0.003730009627676708,
+      "p_value_wilcoxon_holm": 0.01865004813838354,
+      "dwell_dual_wins": 21,
+      "dwell_dual_losses": 9,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 70.0,
+      "significant_after_holm": true
+    },
+    "Candidate 2: Boosted-Tree Dwell": {
+      "mean_difference": 8.114,
+      "median_difference": 7.411,
+      "cohens_d": 1.46,
+      "paired_t_stat": 7.996,
+      "p_value_t_raw": 8.091142179463402e-09,
+      "p_value_t_holm": 1.1327599051248763e-07,
+      "p_value_wilcoxon_raw": 4.0791553292255495e-06,
+      "p_value_wilcoxon_holm": 5.7108174609157695e-05,
+      "dwell_dual_wins": 28,
+      "dwell_dual_losses": 2,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 93.33,
+      "significant_after_holm": true
+    },
+    "Direct NMF": {
+      "mean_difference": 2.626,
+      "median_difference": 1.503,
+      "cohens_d": 0.394,
+      "paired_t_stat": 2.159,
+      "p_value_t_raw": 0.03927760725066692,
+      "p_value_t_holm": 0.03927760725066692,
+      "p_value_wilcoxon_raw": 0.04172369252896863,
+      "p_value_wilcoxon_holm": 0.06727596777117335,
+      "dwell_dual_wins": 21,
+      "dwell_dual_losses": 9,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 70.0,
+      "significant_after_holm": true
+    },
+    "Static NMF+UCB": {
+      "mean_difference": 2.574,
+      "median_difference": 2.337,
+      "cohens_d": 0.532,
+      "paired_t_stat": 2.915,
+      "p_value_t_raw": 0.0067919565159880796,
+      "p_value_t_holm": 0.027167826063952318,
+      "p_value_wilcoxon_raw": 0.005848483237191831,
+      "p_value_wilcoxon_holm": 0.023393932948767324,
+      "dwell_dual_wins": 22,
+      "dwell_dual_losses": 8,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 73.33,
+      "significant_after_holm": true
+    },
+    "Whittle Index RMAB": {
+      "mean_difference": 5.483,
+      "median_difference": 5.018,
+      "cohens_d": 1.029,
+      "paired_t_stat": 5.634,
+      "p_value_t_raw": 4.361804695480974e-06,
+      "p_value_t_holm": 4.797985165029072e-05,
+      "p_value_wilcoxon_raw": 4.256449016480023e-05,
+      "p_value_wilcoxon_holm": 0.0004682093918128025,
+      "dwell_dual_wins": 26,
+      "dwell_dual_losses": 4,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 86.67,
+      "significant_after_holm": true
+    },
+    "Observable Plain UCB": {
+      "mean_difference": 7.935,
+      "median_difference": 8.356,
+      "cohens_d": 1.814,
+      "paired_t_stat": 9.936,
+      "p_value_t_raw": 7.636640508218006e-11,
+      "p_value_t_holm": 1.298228886397061e-09,
+      "p_value_wilcoxon_raw": 2.0212661161444017e-06,
+      "p_value_wilcoxon_holm": 3.4361523974454827e-05,
+      "dwell_dual_wins": 29,
+      "dwell_dual_losses": 1,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 96.67,
+      "significant_after_holm": true
+    },
+    "Uniform Random Scan": {
+      "mean_difference": 10.073,
+      "median_difference": 10.194,
+      "cohens_d": 1.804,
+      "paired_t_stat": 9.882,
+      "p_value_t_raw": 8.628432979643803e-11,
+      "p_value_t_holm": 1.3805492767430084e-09,
+      "p_value_wilcoxon_raw": 2.237270713350812e-06,
+      "p_value_wilcoxon_holm": 3.4361523974454827e-05,
+      "dwell_dual_wins": 29,
+      "dwell_dual_losses": 1,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 96.67,
+      "significant_after_holm": true
+    },
+    "Fixed Sequential Sweep": {
+      "mean_difference": 9.526,
+      "median_difference": 10.04,
+      "cohens_d": 1.67,
+      "paired_t_stat": 9.15,
+      "p_value_t_raw": 4.762154577497558e-10,
+      "p_value_t_holm": 7.143231866246338e-09,
+      "p_value_wilcoxon_raw": 2.0212661161444017e-06,
+      "p_value_wilcoxon_holm": 3.4361523974454827e-05,
+      "dwell_dual_wins": 29,
+      "dwell_dual_losses": 1,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 96.67,
+      "significant_after_holm": true
+    },
+    "Dwell-Dual + Expectimax": {
+      "mean_difference": 4.956,
+      "median_difference": 4.583,
+      "cohens_d": 0.994,
+      "paired_t_stat": 5.444,
+      "p_value_t_raw": 7.398584903245481e-06,
+      "p_value_t_holm": 7.39858490324548e-05,
+      "p_value_wilcoxon_raw": 6.600150715045964e-05,
+      "p_value_wilcoxon_holm": 0.0006600150715045964,
+      "dwell_dual_wins": 25,
+      "dwell_dual_losses": 5,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 83.33,
+      "significant_after_holm": true
+    },
+    "Dwell-Dual + Thompson": {
+      "mean_difference": 2.566,
+      "median_difference": 3.391,
+      "cohens_d": 0.495,
+      "paired_t_stat": 2.711,
+      "p_value_t_raw": 0.011161854419732442,
+      "p_value_t_holm": 0.033485563259197326,
+      "p_value_wilcoxon_raw": 0.02242532259039112,
+      "p_value_wilcoxon_holm": 0.06727596777117335,
+      "dwell_dual_wins": 20,
+      "dwell_dual_losses": 10,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 66.67,
+      "significant_after_holm": true
+    },
+    "Dwell-Dual + Whittle RMAB": {
+      "mean_difference": 2.507,
+      "median_difference": 2.917,
+      "cohens_d": 0.459,
+      "paired_t_stat": 2.513,
+      "p_value_t_raw": 0.017778560877165145,
+      "p_value_t_holm": 0.03555712175433029,
+      "p_value_wilcoxon_raw": 0.02242532259039112,
+      "p_value_wilcoxon_holm": 0.06727596777117335,
+      "dwell_dual_wins": 21,
+      "dwell_dual_losses": 9,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 70.0,
+      "significant_after_holm": true
+    },
+    "Hysteresis Meta-Controller": {
+      "mean_difference": 3.679,
+      "median_difference": 4.249,
+      "cohens_d": 0.666,
+      "paired_t_stat": 3.646,
+      "p_value_t_raw": 0.0010372567839460889,
+      "p_value_t_holm": 0.007260797487622622,
+      "p_value_wilcoxon_raw": 0.002859894614389972,
+      "p_value_wilcoxon_holm": 0.017159367686339834,
+      "dwell_dual_wins": 21,
+      "dwell_dual_losses": 9,
+      "dwell_dual_ties": 0,
+      "dwell_dual_win_rate_pct": 70.0,
+      "significant_after_holm": true
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "num_seeds": 100,
+  "total_episodes": 1200,
+  "total_decisions": 180000,
+  "champ_reward": 18.57136315789475,
+  "champ_ci": [
+    17.585737930154647,
+    19.556988385634856
+  ],
+  "champ_hit_rate": 21.952222222222222,
+  "champ_switches": 75.59166666666667,
+  "champ_latency_ms": 0.20592871890726705,
+  "hawkes_reward": 19.111389035087733,
+  "hawkes_ci": [
+    18.057492901802174,
+    20.16528516837329
+  ],
+  "hawkes_hit_rate": 22.28888888888889,
+  "hawkes_switches": 71.39333333333333,
+  "hawkes_latency_ms": 0.3059701877532967,
+  "mean_delta": 0.5400258771929848,
+  "delta_ci": [
+    -0.21928741834214716,
+    1.2993391727281167
+  ],
+  "p_value_t": 0.16132617295825236,
+  "p_value_wilcoxon": 0.25436768118364145,
+  "cohen_d": 0.14111810054194834,
+  "wins": 50,
+  "losses": 50,
+  "ties": 0,
+  "win_rate_pct": 50.0,
+  "scenario_breakdown": {
+    "Dwell-Dual Policy (Champion)": {
+      "stationary": 36.39600000000005,
+      "hopping": 21.15900000000001,
+      "changing": 21.544497368421066,
+      "harsh": -2.143044736842109,
+      "operational": 2.5476736842105243,
+      "crowded": 31.924052631578967
+    },
+    "Dwell-Dual + Hawkes Process": {
+      "stationary": 38.18600000000005,
+      "hopping": 21.336000000000016,
+      "changing": 22.274642105263165,
+      "harsh": -0.904528947368425,
+      "operational": 2.105389473684208,
+      "crowded": 31.670831578947386
+    }
+  }
+}

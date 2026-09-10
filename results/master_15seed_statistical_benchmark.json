@@ -1,60 +1,40 @@
 {
   "run_metadata": {
-    "run_id": "smartscan_suite_20260906_125903",
+    "run_id": "smartscan_suite_20260906_183903",
     "experiment_name": "statistical_rigor_14models",
-    "timestamp_utc": "2026-09-06T12:59:03.655681+00:00",
-    "git_commit": "213fb01dafe3c4c4c845b4dcebe9fc9056d509ff",
+    "timestamp_utc": "2026-09-06T18:39:03.730383+00:00",
+    "git_commit": "ee226605d2211e1b8fef2af2603c97c2238a032c",
     "seeds": [
-      10001,
-      10002,
-      10003,
-      10004,
-      10005,
-      10006,
-      10007,
-      10008,
-      10009,
-      10010,
-      10011,
-      10012,
-      10013,
-      10014,
-      10015,
-      10016,
-      10017,
-      10018,
-      10019,
-      10020,
-      10021,
-      10022,
-      10023,
-      10024,
-      10025,
-      10026,
-      10027,
-      10028,
-      10029,
-      10030,
-      10031,
-      10032,
-      10033,
-      10034,
-      10035,
-      10036,
-      10037,
-      10038,
-      10039,
-      10040,
-      10041,
-      10042,
-      10043,
-      10044,
-      10045,
-      10046,
-      10047,
-      10048,
-      10049,
-      10050
+      50001,
+      50002,
+      50003,
+      50004,
+      50005,
+      50006,
+      50007,
+      50008,
+      50009,
+      50010,
+      50011,
+      50012,
+      50013,
+      50014,
+      50015,
+      50016,
+      50017,
+      50018,
+      50019,
+      50020,
+      50021,
+      50022,
+      50023,
+      50024,
+      50025,
+      50026,
+      50027,
+      50028,
+      50029,
+      50030
     ],
     "scenarios": [
       "stationary",
@@ -69,23 +49,27 @@
   "tiers": {
     "tier_1": {
       "name": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)",
-      "criterion": "Paired Student's t-test p >= 0.05 vs Dwell-Dual Policy (df=299, 300 paired episodes)",
+      "criterion": "Paired Student's t-test p >= 0.05 vs Dwell-Dual Policy (df=179, 180 paired episodes)",
       "models": [
-        "Dwell-Dual Policy (Champion)"
+        "Dwell-Dual Policy (Champion)",
+        "Dwell-Dual + Thompson",
+        "Dwell-Dual + Whittle RMAB",
+        "Direct NMF",
+        "Static NMF+UCB",
+        "Dual-Policy Uncertainty"
       ]
     },
     "tier_2": {
       "name": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)",
-      "criterion": "Paired Student's t-test p < 0.05 vs Dwell-Dual Policy (df=299, 300 paired episodes)",
+      "criterion": "Paired Student's t-test p < 0.05 vs Dwell-Dual Policy (df=179, 180 paired episodes)",
       "models": [
-        "Dual-Policy Uncertainty",
-        "Static NMF+UCB",
-        "Direct NMF",
-        "SmartScan-Omni V2 (Tuned)",
+        "Dwell-Dual + Expectimax",
+        "Hysteresis Meta-Controller",
         "Candidate 1: LinUCB Bandit",
         "SmartScan V2-NMF",
-        "Whittle Index RMAB",
         "Robust PCA + PSR",
+        "SmartScan-Omni V2 (Tuned)",
+        "Whittle Index RMAB",
         "Candidate 3: GRU-D Recurrent",
         "Observable Plain UCB",
         "Candidate 2: Boosted-Tree Dwell",
@@ -98,52 +82,52 @@
     "Dwell-Dual Policy (Champion)": {
       "category": "Grand Champion",
       "description": "NMF Spectral Discovery + Dwell-Lock Inertia + Agile Exploration",
-      "mean_reward": 18.17,
-      "std_reward": 17.48,
+      "mean_reward": 18.85,
+      "std_reward": 18.13,
       "reward_95ci": [
-        16.6,
-        19.74
+        16.68,
+        21.01
       ],
-      "reward_ci_str": "+18.17 (95% CI: [+16.60, +19.74])",
-      "mean_hits": 23.4,
-      "std_hits": 16.5,
+      "reward_ci_str": "+18.85 (95% CI: [+16.68, +21.01])",
+      "mean_hits": 25.7,
+      "std_hits": 17.2,
       "hits_95ci": [
-        21.3,
-        25.4
+        23.2,
+        28.2
       ],
-      "interception_rate_pct": 18.04,
-      "mean_switches": 80.2,
+      "interception_rate_pct": 18.87,
+      "mean_switches": 79.3,
       "std_switches": 9.0,
       "switches_95ci": [
-        79.1,
-        81.2
+        77.9,
+        80.6
       ],
-      "latency_mean_ms": 0.371,
-      "latency_p95_ms": 0.6702,
+      "latency_mean_ms": 0.3441,
+      "latency_p95_ms": 0.3627,
       "scenario_stats": {
         "stationary": {
-          "mean": 35.67,
-          "std": 15.98
+          "mean": 38.8,
+          "std": 14.36
         },
         "hopping": {
-          "mean": 22.24,
-          "std": 9.72
+          "mean": 20.36,
+          "std": 9.51
         },
         "changing": {
-          "mean": 19.72,
-          "std": 8.96
+          "mean": 22.69,
+          "std": 11.59
         },
         "harsh": {
-          "mean": -3.24,
-          "std": 6.43
+          "mean": -1.61,
+          "std": 6.92
         },
         "operational": {
-          "mean": 4.07,
-          "std": 8.03
+          "mean": 2.06,
+          "std": 8.87
         },
         "crowded": {
-          "mean": 30.56,
-          "std": 13.05
+          "mean": 30.79,
+          "std": 13.0
         }
       },
       "overlaps_with_prev": false,
@@ -156,245 +140,428 @@
       "tier": 1,
       "tier_label": "Tier 1: Champion (Best Point Estimate)"
     },
-    "Dual-Policy Uncertainty": {
-      "category": "Dual-Mode Bandit",
-      "description": "Probabilistic Arbitration between NMF Exploitation and Curiosity Exploration",
-      "mean_reward": 16.57,
-      "std_reward": 16.14,
+    "Dwell-Dual + Thompson": {
+      "category": "Candidate Upgrade",
+      "description": "Dwell-Dual + Discounted Beta-Bernoulli Thompson Sampling Exploration",
+      "mean_reward": 18.78,
+      "std_reward": 18.29,
       "reward_95ci": [
-        15.21,
-        17.93
+        16.82,
+        20.74
       ],
-      "reward_ci_str": "+16.57 (95% CI: [+15.21, +17.93])",
-      "mean_hits": 21.3,
-      "std_hits": 14.8,
+      "reward_ci_str": "+18.78 (95% CI: [+16.82, +20.74])",
+      "mean_hits": 24.6,
+      "std_hits": 17.8,
       "hits_95ci": [
-        19.5,
-        23.0
+        22.0,
+        27.1
       ],
-      "interception_rate_pct": 16.42,
-      "mean_switches": 104.6,
-      "std_switches": 7.7,
+      "interception_rate_pct": 18.0,
+      "mean_switches": 72.7,
+      "std_switches": 5.5,
       "switches_95ci": [
-        103.8,
-        105.5
+        71.9,
+        73.5
       ],
-      "latency_mean_ms": 0.746,
-      "latency_p95_ms": 0.8691,
+      "latency_mean_ms": 0.3224,
+      "latency_p95_ms": 0.3582,
       "scenario_stats": {
         "stationary": {
-          "mean": 31.5,
-          "std": 13.38
+          "mean": 43.32,
+          "std": 14.55
         },
         "hopping": {
-          "mean": 20.23,
-          "std": 8.1
+          "mean": 21.37,
+          "std": 7.58
         },
         "changing": {
-          "mean": 19.47,
-          "std": 9.3
+          "mean": 19.13,
+          "std": 8.82
         },
         "harsh": {
-          "mean": -3.52,
-          "std": 7.11
+          "mean": -2.99,
+          "std": 6.1
         },
         "operational": {
-          "mean": 2.43,
-          "std": 6.22
+          "mean": 3.55,
+          "std": 8.06
         },
         "crowded": {
-          "mean": 29.32,
-          "std": 11.74
+          "mean": 28.3,
+          "std": 12.69
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
       "final_rank": 2,
-      "p_value_vs_dwell_dual": 0.007146,
-      "cohens_d_vs_dwell_dual": 0.156,
+      "p_value_vs_dwell_dual": 0.938984,
+      "cohens_d_vs_dwell_dual": 0.006,
       "significantly_beats_dwell_dual": false,
-      "distinguishable_from_dwell_dual": true,
-      "tier": 2,
-      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+      "distinguishable_from_dwell_dual": false,
+      "tier": 1,
+      "tier_label": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)"
     },
-    "Static NMF+UCB": {
-      "category": "Heuristic Fusion",
-      "description": "Additive Fusion of Low-Rank NMF Belief and Non-Stationary Discounted UCB",
-      "mean_reward": 16.54,
-      "std_reward": 17.0,
+    "Dwell-Dual + Whittle RMAB": {
+      "category": "Candidate Upgrade",
+      "description": "Dwell-Dual + Restless Multi-Armed Bandit Whittle Age-of-Information Indexing",
+      "mean_reward": 18.48,
+      "std_reward": 18.11,
       "reward_95ci": [
-        15.11,
-        17.97
+        16.35,
+        20.6
       ],
-      "reward_ci_str": "+16.54 (95% CI: [+15.11, +17.97])",
-      "mean_hits": 21.7,
-      "std_hits": 15.6,
+      "reward_ci_str": "+18.48 (95% CI: [+16.35, +20.60])",
+      "mean_hits": 24.2,
+      "std_hits": 17.7,
       "hits_95ci": [
-        19.9,
-        23.6
+        21.5,
+        26.8
       ],
-      "interception_rate_pct": 16.76,
-      "mean_switches": 97.9,
-      "std_switches": 9.3,
+      "interception_rate_pct": 17.72,
+      "mean_switches": 77.5,
+      "std_switches": 8.5,
       "switches_95ci": [
-        96.9,
-        99.0
+        76.2,
+        78.7
       ],
-      "latency_mean_ms": 8.7278,
-      "latency_p95_ms": 13.9533,
+      "latency_mean_ms": 0.292,
+      "latency_p95_ms": 0.3263,
       "scenario_stats": {
         "stationary": {
-          "mean": 31.65,
-          "std": 14.05
+          "mean": 43.31,
+          "std": 14.98
         },
         "hopping": {
-          "mean": 22.27,
-          "std": 10.88
+          "mean": 20.92,
+          "std": 7.41
         },
         "changing": {
-          "mean": 19.15,
-          "std": 9.87
+          "mean": 19.28,
+          "std": 8.29
         },
         "harsh": {
-          "mean": -4.03,
-          "std": 6.61
+          "mean": -0.69,
+          "std": 5.46
         },
         "operational": {
-          "mean": 1.27,
-          "std": 7.46
+          "mean": 1.99,
+          "std": 7.78
         },
         "crowded": {
-          "mean": 28.93,
-          "std": 12.33
+          "mean": 26.08,
+          "std": 14.86
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
       "final_rank": 3,
-      "p_value_vs_dwell_dual": 0.010644,
-      "cohens_d_vs_dwell_dual": 0.148,
+      "p_value_vs_dwell_dual": 0.670665,
+      "cohens_d_vs_dwell_dual": 0.032,
       "significantly_beats_dwell_dual": false,
-      "distinguishable_from_dwell_dual": true,
-      "tier": 2,
-      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+      "distinguishable_from_dwell_dual": false,
+      "tier": 1,
+      "tier_label": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)"
     },
     "Direct NMF": {
       "category": "Matrix Factorization",
       "description": "Non-negative Matrix Factorization (#1 in Stationary Radars: +52.3)",
-      "mean_reward": 16.25,
-      "std_reward": 20.96,
+      "mean_reward": 18.2,
+      "std_reward": 22.19,
       "reward_95ci": [
-        14.48,
-        18.03
+        16.1,
+        20.3
       ],
-      "reward_ci_str": "+16.25 (95% CI: [+14.48, +18.03])",
-      "mean_hits": 19.9,
-      "std_hits": 22.0,
+      "reward_ci_str": "+18.20 (95% CI: [+16.10, +20.30])",
+      "mean_hits": 23.4,
+      "std_hits": 22.8,
       "hits_95ci": [
-        17.8,
-        22.1
+        20.9,
+        26.0
       ],
-      "interception_rate_pct": 15.39,
-      "mean_switches": 12.4,
-      "std_switches": 10.8,
+      "interception_rate_pct": 17.17,
+      "mean_switches": 11.4,
+      "std_switches": 11.6,
       "switches_95ci": [
-        11.2,
-        13.6
+        9.7,
+        13.1
       ],
-      "latency_mean_ms": 0.1259,
-      "latency_p95_ms": 0.2057,
+      "latency_mean_ms": 0.0364,
+      "latency_p95_ms": 0.0483,
       "scenario_stats": {
         "stationary": {
-          "mean": 48.47,
-          "std": 27.61
+          "mean": 54.69,
+          "std": 24.92
         },
         "hopping": {
-          "mean": 15.51,
-          "std": 8.24
+          "mean": 17.46,
+          "std": 8.37
         },
         "changing": {
-          "mean": 14.11,
-          "std": 8.29
+          "mean": 13.7,
+          "std": 6.08
         },
         "harsh": {
-          "mean": -2.03,
-          "std": 6.75
+          "mean": -2.37,
+          "std": 6.33
         },
         "operational": {
-          "mean": 3.22,
-          "std": 6.01
+          "mean": 4.96,
+          "std": 7.2
         },
         "crowded": {
-          "mean": 18.24,
-          "std": 10.77
+          "mean": 20.78,
+          "std": 13.94
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
       "final_rank": 4,
-      "p_value_vs_dwell_dual": 0.042389,
-      "cohens_d_vs_dwell_dual": 0.118,
+      "p_value_vs_dwell_dual": 0.594076,
+      "cohens_d_vs_dwell_dual": 0.04,
       "significantly_beats_dwell_dual": false,
-      "distinguishable_from_dwell_dual": true,
-      "tier": 2,
-      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+      "distinguishable_from_dwell_dual": false,
+      "tier": 1,
+      "tier_label": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)"
     },
-    "SmartScan-Omni V2 (Tuned)": {
-      "category": "Lookahead / EW Specialist",
-      "description": "Depth-2 Expectimax Lookahead + RL Value Critic + Robust PCA Filter",
-      "mean_reward": 15.37,
-      "std_reward": 19.53,
+    "Static NMF+UCB": {
+      "category": "Heuristic Fusion",
+      "description": "Additive Fusion of Low-Rank NMF Belief and Non-Stationary Discounted UCB",
+      "mean_reward": 17.95,
+      "std_reward": 16.79,
       "reward_95ci": [
-        13.54,
-        17.2
+        16.2,
+        19.69
       ],
-      "reward_ci_str": "+15.37 (95% CI: [+13.54, +17.20])",
-      "mean_hits": 18.8,
-      "std_hits": 20.2,
+      "reward_ci_str": "+17.95 (95% CI: [+16.20, +19.69])",
+      "mean_hits": 24.1,
+      "std_hits": 14.7,
       "hits_95ci": [
-        16.5,
-        21.1
+        22.1,
+        26.2
       ],
-      "interception_rate_pct": 14.49,
-      "mean_switches": 25.0,
-      "std_switches": 14.6,
+      "interception_rate_pct": 17.69,
+      "mean_switches": 97.8,
+      "std_switches": 8.4,
       "switches_95ci": [
-        23.3,
-        26.6
+        96.5,
+        99.0
       ],
-      "latency_mean_ms": 12.9969,
-      "latency_p95_ms": 19.5036,
+      "latency_mean_ms": 4.1102,
+      "latency_p95_ms": 6.1019,
       "scenario_stats": {
         "stationary": {
-          "mean": 38.39,
-          "std": 28.62
+          "mean": 33.26,
+          "std": 14.11
         },
         "hopping": {
-          "mean": 16.57,
-          "std": 6.42
+          "mean": 21.38,
+          "std": 8.23
         },
         "changing": {
-          "mean": 15.45,
-          "std": 7.94
+          "mean": 23.14,
+          "std": 9.45
         },
         "harsh": {
-          "mean": -2.14,
-          "std": 6.56
+          "mean": -3.67,
+          "std": 7.1
         },
         "operational": {
-          "mean": 1.15,
-          "std": 7.29
+          "mean": 4.04,
+          "std": 8.59
         },
         "crowded": {
-          "mean": 22.77,
-          "std": 13.86
+          "mean": 29.52,
+          "std": 12.44
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
       "final_rank": 5,
-      "p_value_vs_dwell_dual": 0.001093,
-      "cohens_d_vs_dwell_dual": 0.19,
+      "p_value_vs_dwell_dual": 0.298543,
+      "cohens_d_vs_dwell_dual": 0.078,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": false,
+      "tier": 1,
+      "tier_label": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)"
+    },
+    "Dual-Policy Uncertainty": {
+      "category": "Dual-Mode Bandit",
+      "description": "Probabilistic Arbitration between NMF Exploitation and Curiosity Exploration",
+      "mean_reward": 17.71,
+      "std_reward": 16.51,
+      "reward_95ci": [
+        15.77,
+        19.64
+      ],
+      "reward_ci_str": "+17.71 (95% CI: [+15.77, +19.64])",
+      "mean_hits": 23.5,
+      "std_hits": 14.3,
+      "hits_95ci": [
+        21.2,
+        25.7
+      ],
+      "interception_rate_pct": 17.2,
+      "mean_switches": 104.6,
+      "std_switches": 8.1,
+      "switches_95ci": [
+        103.4,
+        105.8
+      ],
+      "latency_mean_ms": 0.341,
+      "latency_p95_ms": 0.3584,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 33.84,
+          "std": 13.33
+        },
+        "hopping": {
+          "mean": 24.13,
+          "std": 8.3
+        },
+        "changing": {
+          "mean": 21.78,
+          "std": 9.3
+        },
+        "harsh": {
+          "mean": -2.96,
+          "std": 6.33
+        },
+        "operational": {
+          "mean": 2.26,
+          "std": 8.21
+        },
+        "crowded": {
+          "mean": 27.22,
+          "std": 11.38
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 6,
+      "p_value_vs_dwell_dual": 0.194636,
+      "cohens_d_vs_dwell_dual": 0.097,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": false,
+      "tier": 1,
+      "tier_label": "Tier 1: Statistically Indistinguishable from Champion (p >= 0.05)"
+    },
+    "Dwell-Dual + Expectimax": {
+      "category": "Candidate Upgrade",
+      "description": "Hierarchical Dwell-Dual + Selective Shortlist Depth-2 Expectimax Lookahead",
+      "mean_reward": 16.63,
+      "std_reward": 16.58,
+      "reward_95ci": [
+        14.81,
+        18.45
+      ],
+      "reward_ci_str": "+16.63 (95% CI: [+14.81, +18.45])",
+      "mean_hits": 20.8,
+      "std_hits": 15.9,
+      "hits_95ci": [
+        18.7,
+        23.0
+      ],
+      "interception_rate_pct": 15.25,
+      "mean_switches": 59.8,
+      "std_switches": 2.2,
+      "switches_95ci": [
+        59.5,
+        60.2
+      ],
+      "latency_mean_ms": 0.4027,
+      "latency_p95_ms": 0.4476,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 39.19,
+          "std": 15.87
+        },
+        "hopping": {
+          "mean": 19.2,
+          "std": 6.97
+        },
+        "changing": {
+          "mean": 16.3,
+          "std": 5.52
+        },
+        "harsh": {
+          "mean": -0.96,
+          "std": 7.1
+        },
+        "operational": {
+          "mean": 3.39,
+          "std": 5.9
+        },
+        "crowded": {
+          "mean": 22.63,
+          "std": 14.43
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 7,
+      "p_value_vs_dwell_dual": 0.01384,
+      "cohens_d_vs_dwell_dual": 0.185,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Hysteresis Meta-Controller": {
+      "category": "Meta-Controller",
+      "description": "Bandit of Bandits Meta-Controller with 15-Step Hysteresis Lock Window",
+      "mean_reward": 16.45,
+      "std_reward": 17.27,
+      "reward_95ci": [
+        14.7,
+        18.2
+      ],
+      "reward_ci_str": "+16.45 (95% CI: [+14.70, +18.20])",
+      "mean_hits": 21.4,
+      "std_hits": 16.0,
+      "hits_95ci": [
+        19.4,
+        23.5
+      ],
+      "interception_rate_pct": 15.72,
+      "mean_switches": 94.2,
+      "std_switches": 13.6,
+      "switches_95ci": [
+        92.3,
+        96.2
+      ],
+      "latency_mean_ms": 0.1176,
+      "latency_p95_ms": 0.1765,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 35.98,
+          "std": 17.56
+        },
+        "hopping": {
+          "mean": 19.14,
+          "std": 8.54
+        },
+        "changing": {
+          "mean": 19.83,
+          "std": 8.58
+        },
+        "harsh": {
+          "mean": -3.26,
+          "std": 7.06
+        },
+        "operational": {
+          "mean": 2.13,
+          "std": 6.97
+        },
+        "crowded": {
+          "mean": 24.86,
+          "std": 13.63
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 8,
+      "p_value_vs_dwell_dual": 0.012853,
+      "cohens_d_vs_dwell_dual": 0.187,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -403,59 +570,59 @@
     "Candidate 1: LinUCB Bandit": {
       "category": "Contextual Bandit",
       "description": "Sherman-Morrison Rank-1 Inversion + 8-Dim Context Vector + 4 Strategy Arms",
-      "mean_reward": 14.83,
-      "std_reward": 16.77,
+      "mean_reward": 16.21,
+      "std_reward": 16.7,
       "reward_95ci": [
-        13.38,
-        16.27
+        14.62,
+        17.79
       ],
-      "reward_ci_str": "+14.83 (95% CI: [+13.38, +16.27])",
-      "mean_hits": 19.3,
-      "std_hits": 16.1,
+      "reward_ci_str": "+16.21 (95% CI: [+14.62, +17.79])",
+      "mean_hits": 20.9,
+      "std_hits": 15.3,
       "hits_95ci": [
-        17.4,
-        21.1
+        18.7,
+        23.1
       ],
-      "interception_rate_pct": 14.87,
-      "mean_switches": 69.5,
-      "std_switches": 14.9,
+      "interception_rate_pct": 15.32,
+      "mean_switches": 70.4,
+      "std_switches": 14.4,
       "switches_95ci": [
-        67.9,
-        71.2
+        68.3,
+        72.5
       ],
-      "latency_mean_ms": 1.1025,
-      "latency_p95_ms": 1.72,
+      "latency_mean_ms": 0.2765,
+      "latency_p95_ms": 0.3855,
       "scenario_stats": {
         "stationary": {
-          "mean": 34.72,
-          "std": 15.91
+          "mean": 36.04,
+          "std": 18.26
         },
         "hopping": {
-          "mean": 16.99,
-          "std": 8.64
+          "mean": 18.77,
+          "std": 8.69
         },
         "changing": {
-          "mean": 16.06,
-          "std": 9.13
+          "mean": 19.76,
+          "std": 7.97
         },
         "harsh": {
-          "mean": -3.74,
-          "std": 6.91
+          "mean": -3.05,
+          "std": 6.69
         },
         "operational": {
-          "mean": 1.38,
-          "std": 6.64
+          "mean": 2.68,
+          "std": 6.73
         },
         "crowded": {
-          "mean": 23.54,
-          "std": 13.71
+          "mean": 23.03,
+          "std": 10.5
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 6,
-      "p_value_vs_dwell_dual": 1e-06,
-      "cohens_d_vs_dwell_dual": 0.294,
+      "final_rank": 9,
+      "p_value_vs_dwell_dual": 0.002413,
+      "cohens_d_vs_dwell_dual": 0.229,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -464,120 +631,59 @@
     "SmartScan V2-NMF": {
       "category": "Expectimax Search",
       "description": "Depth-2 Expectimax Tree Search over NMF Belief Distributions",
-      "mean_reward": 14.78,
-      "std_reward": 17.85,
+      "mean_reward": 15.51,
+      "std_reward": 18.15,
       "reward_95ci": [
-        13.08,
-        16.48
+        13.52,
+        17.5
       ],
-      "reward_ci_str": "+14.78 (95% CI: [+13.08, +16.48])",
-      "mean_hits": 18.5,
-      "std_hits": 18.5,
+      "reward_ci_str": "+15.51 (95% CI: [+13.52, +17.50])",
+      "mean_hits": 19.5,
+      "std_hits": 17.9,
       "hits_95ci": [
-        16.4,
-        20.6
+        17.2,
+        21.8
       ],
-      "interception_rate_pct": 14.26,
-      "mean_switches": 51.1,
-      "std_switches": 23.7,
+      "interception_rate_pct": 14.31,
+      "mean_switches": 48.9,
+      "std_switches": 24.6,
       "switches_95ci": [
-        48.4,
-        53.8
+        45.3,
+        52.5
       ],
-      "latency_mean_ms": 10.0012,
-      "latency_p95_ms": 16.8606,
+      "latency_mean_ms": 4.8726,
+      "latency_p95_ms": 6.9887,
       "scenario_stats": {
         "stationary": {
-          "mean": 38.11,
-          "std": 23.2
+          "mean": 40.31,
+          "std": 22.91
         },
         "hopping": {
-          "mean": 16.63,
-          "std": 7.76
+          "mean": 17.53,
+          "std": 7.29
         },
         "changing": {
-          "mean": 13.81,
-          "std": 7.68
+          "mean": 15.34,
+          "std": 7.22
         },
         "harsh": {
-          "mean": -3.45,
-          "std": 5.73
+          "mean": -0.64,
+          "std": 7.12
         },
         "operational": {
-          "mean": 2.82,
-          "std": 6.95
+          "mean": -0.57,
+          "std": 5.94
         },
         "crowded": {
-          "mean": 20.75,
-          "std": 11.14
+          "mean": 21.08,
+          "std": 10.41
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 7,
-      "p_value_vs_dwell_dual": 6e-06,
-      "cohens_d_vs_dwell_dual": 0.266,
-      "significantly_beats_dwell_dual": false,
-      "distinguishable_from_dwell_dual": true,
-      "tier": 2,
-      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
-    },
-    "Whittle Index RMAB": {
-      "category": "Mathematical Scheduling",
-      "description": "Restless Multi-Armed Bandit with Closed-Form Whittle Index Policy",
-      "mean_reward": 13.52,
-      "std_reward": 13.83,
-      "reward_95ci": [
-        11.9,
-        15.14
-      ],
-      "reward_ci_str": "+13.52 (95% CI: [+11.90, +15.14])",
-      "mean_hits": 17.3,
-      "std_hits": 12.3,
-      "hits_95ci": [
-        15.5,
-        19.2
-      ],
-      "interception_rate_pct": 13.38,
-      "mean_switches": 122.2,
-      "std_switches": 11.1,
-      "switches_95ci": [
-        120.9,
-        123.4
-      ],
-      "latency_mean_ms": 0.3072,
-      "latency_p95_ms": 0.5932,
-      "scenario_stats": {
-        "stationary": {
-          "mean": 20.41,
-          "std": 11.36
-        },
-        "hopping": {
-          "mean": 20.28,
-          "std": 9.24
-        },
-        "changing": {
-          "mean": 17.36,
-          "std": 8.35
-        },
-        "harsh": {
-          "mean": -2.68,
-          "std": 6.87
-        },
-        "operational": {
-          "mean": 1.43,
-          "std": 6.1
-        },
-        "crowded": {
-          "mean": 24.3,
-          "std": 12.35
-        }
-      },
-      "overlaps_with_prev": true,
-      "overlaps_with_next": true,
-      "final_rank": 8,
-      "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.416,
+      "final_rank": 10,
+      "p_value_vs_dwell_dual": 0.000796,
+      "cohens_d_vs_dwell_dual": 0.254,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -586,59 +692,181 @@
     "Robust PCA + PSR": {
       "category": "Embedded Champion",
       "description": "Inexact ALM Low-Rank / Sparse Decomposition + Predictive Spectral Recovery",
-      "mean_reward": 13.45,
-      "std_reward": 16.39,
+      "mean_reward": 15.32,
+      "std_reward": 16.33,
       "reward_95ci": [
-        11.99,
-        14.92
+        13.25,
+        17.39
       ],
-      "reward_ci_str": "+13.45 (95% CI: [+11.99, +14.92])",
-      "mean_hits": 17.1,
+      "reward_ci_str": "+15.32 (95% CI: [+13.25, +17.39])",
+      "mean_hits": 19.5,
       "std_hits": 16.7,
       "hits_95ci": [
-        15.2,
-        19.1
+        16.7,
+        22.3
       ],
-      "interception_rate_pct": 13.23,
-      "mean_switches": 30.1,
-      "std_switches": 14.4,
+      "interception_rate_pct": 14.29,
+      "mean_switches": 32.0,
+      "std_switches": 15.2,
       "switches_95ci": [
-        28.4,
-        31.7
+        29.8,
+        34.2
       ],
-      "latency_mean_ms": 0.1769,
-      "latency_p95_ms": 0.41,
+      "latency_mean_ms": 0.0478,
+      "latency_p95_ms": 0.0557,
       "scenario_stats": {
         "stationary": {
-          "mean": 27.37,
-          "std": 19.96
+          "mean": 31.23,
+          "std": 21.4
         },
         "hopping": {
-          "mean": 16.0,
-          "std": 7.6
+          "mean": 20.27,
+          "std": 8.49
         },
         "changing": {
-          "mean": 16.27,
-          "std": 10.78
+          "mean": 16.2,
+          "std": 10.56
         },
         "harsh": {
-          "mean": -3.51,
-          "std": 6.62
+          "mean": -1.52,
+          "std": 7.09
         },
         "operational": {
-          "mean": 1.19,
-          "std": 6.74
+          "mean": 3.11,
+          "std": 6.02
         },
         "crowded": {
-          "mean": 23.4,
-          "std": 14.75
+          "mean": 22.63,
+          "std": 11.26
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 9,
-      "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.358,
+      "final_rank": 11,
+      "p_value_vs_dwell_dual": 0.000757,
+      "cohens_d_vs_dwell_dual": 0.255,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "SmartScan-Omni V2 (Tuned)": {
+      "category": "Lookahead / EW Specialist",
+      "description": "Depth-2 Expectimax Lookahead + RL Value Critic + Robust PCA Filter",
+      "mean_reward": 15.09,
+      "std_reward": 18.29,
+      "reward_95ci": [
+        12.85,
+        17.34
+      ],
+      "reward_ci_str": "+15.09 (95% CI: [+12.85, +17.34])",
+      "mean_hits": 19.4,
+      "std_hits": 19.0,
+      "hits_95ci": [
+        16.6,
+        22.3
+      ],
+      "interception_rate_pct": 14.26,
+      "mean_switches": 21.2,
+      "std_switches": 14.8,
+      "switches_95ci": [
+        19.0,
+        23.4
+      ],
+      "latency_mean_ms": 5.3001,
+      "latency_p95_ms": 8.3355,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 37.42,
+          "std": 25.82
+        },
+        "hopping": {
+          "mean": 17.89,
+          "std": 6.54
+        },
+        "changing": {
+          "mean": 16.88,
+          "std": 8.7
+        },
+        "harsh": {
+          "mean": -3.27,
+          "std": 7.09
+        },
+        "operational": {
+          "mean": 2.32,
+          "std": 6.34
+        },
+        "crowded": {
+          "mean": 19.32,
+          "std": 11.25
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 12,
+      "p_value_vs_dwell_dual": 0.003277,
+      "cohens_d_vs_dwell_dual": 0.222,
+      "significantly_beats_dwell_dual": false,
+      "distinguishable_from_dwell_dual": true,
+      "tier": 2,
+      "tier_label": "Tier 2: Statistically Separated / Sub-optimal Baselines (p < 0.05)"
+    },
+    "Whittle Index RMAB": {
+      "category": "Mathematical Scheduling",
+      "description": "Restless Multi-Armed Bandit with Closed-Form Whittle Index Policy",
+      "mean_reward": 14.67,
+      "std_reward": 14.34,
+      "reward_95ci": [
+        13.33,
+        16.01
+      ],
+      "reward_ci_str": "+14.67 (95% CI: [+13.33, +16.01])",
+      "mean_hits": 19.9,
+      "std_hits": 12.9,
+      "hits_95ci": [
+        18.0,
+        21.9
+      ],
+      "interception_rate_pct": 14.63,
+      "mean_switches": 119.4,
+      "std_switches": 11.7,
+      "switches_95ci": [
+        117.6,
+        121.1
+      ],
+      "latency_mean_ms": 0.0733,
+      "latency_p95_ms": 0.1029,
+      "scenario_stats": {
+        "stationary": {
+          "mean": 25.43,
+          "std": 13.25
+        },
+        "hopping": {
+          "mean": 20.42,
+          "std": 7.26
+        },
+        "changing": {
+          "mean": 17.97,
+          "std": 7.44
+        },
+        "harsh": {
+          "mean": -1.88,
+          "std": 7.84
+        },
+        "operational": {
+          "mean": 0.3,
+          "std": 6.98
+        },
+        "crowded": {
+          "mean": 25.76,
+          "std": 9.25
+        }
+      },
+      "overlaps_with_prev": true,
+      "overlaps_with_next": true,
+      "final_rank": 13,
+      "p_value_vs_dwell_dual": 3e-06,
+      "cohens_d_vs_dwell_dual": 0.359,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -647,59 +875,59 @@
     "Candidate 3: GRU-D Recurrent": {
       "category": "Deep Recurrent Network",
       "description": "Che et al. (Nature 2018) Observation & Memory Decay for Missing Data",
-      "mean_reward": 12.15,
-      "std_reward": 13.01,
+      "mean_reward": 14.27,
+      "std_reward": 13.68,
       "reward_95ci": [
-        10.74,
-        13.57
+        12.59,
+        15.96
       ],
-      "reward_ci_str": "+12.15 (95% CI: [+10.74, +13.57])",
-      "mean_hits": 15.5,
-      "std_hits": 11.7,
+      "reward_ci_str": "+14.27 (95% CI: [+12.59, +15.96])",
+      "mean_hits": 18.6,
+      "std_hits": 12.4,
       "hits_95ci": [
-        13.8,
-        17.2
+        16.3,
+        20.9
       ],
-      "interception_rate_pct": 11.96,
-      "mean_switches": 91.2,
-      "std_switches": 6.5,
+      "interception_rate_pct": 13.63,
+      "mean_switches": 90.5,
+      "std_switches": 6.8,
       "switches_95ci": [
-        90.5,
-        91.9
+        89.5,
+        91.5
       ],
-      "latency_mean_ms": 0.1399,
-      "latency_p95_ms": 0.3421,
+      "latency_mean_ms": 0.0389,
+      "latency_p95_ms": 0.055,
       "scenario_stats": {
         "stationary": {
-          "mean": 19.53,
-          "std": 10.46
+          "mean": 21.54,
+          "std": 12.3
         },
         "hopping": {
-          "mean": 19.31,
-          "std": 9.53
+          "mean": 21.28,
+          "std": 8.68
         },
         "changing": {
-          "mean": 16.11,
-          "std": 8.13
+          "mean": 20.4,
+          "std": 8.98
         },
         "harsh": {
-          "mean": -3.56,
-          "std": 6.48
+          "mean": -1.39,
+          "std": 6.37
         },
         "operational": {
-          "mean": 1.03,
-          "std": 5.58
+          "mean": 1.53,
+          "std": 6.19
         },
         "crowded": {
-          "mean": 20.5,
-          "std": 10.94
+          "mean": 22.29,
+          "std": 11.7
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 10,
-      "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.523,
+      "final_rank": 14,
+      "p_value_vs_dwell_dual": 2e-06,
+      "cohens_d_vs_dwell_dual": 0.363,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -708,59 +936,59 @@
     "Observable Plain UCB": {
       "category": "Discounted Bandit",
       "description": "Discounted Upper Confidence Bound on Partially Observable Channels",
-      "mean_reward": 11.35,
-      "std_reward": 12.55,
+      "mean_reward": 13.15,
+      "std_reward": 12.3,
       "reward_95ci": [
-        10.09,
-        12.61
+        11.65,
+        14.65
       ],
-      "reward_ci_str": "+11.35 (95% CI: [+10.09, +12.61])",
-      "mean_hits": 14.8,
-      "std_hits": 9.9,
+      "reward_ci_str": "+13.15 (95% CI: [+11.65, +14.65])",
+      "mean_hits": 16.9,
+      "std_hits": 9.7,
       "hits_95ci": [
-        13.3,
-        16.3
+        15.3,
+        18.4
       ],
-      "interception_rate_pct": 11.42,
-      "mean_switches": 144.8,
-      "std_switches": 4.7,
+      "interception_rate_pct": 12.37,
+      "mean_switches": 144.2,
+      "std_switches": 4.8,
       "switches_95ci": [
-        144.3,
-        145.3
+        143.5,
+        144.9
       ],
-      "latency_mean_ms": 11.4973,
-      "latency_p95_ms": 17.0671,
+      "latency_mean_ms": 5.1951,
+      "latency_p95_ms": 7.0416,
       "scenario_stats": {
         "stationary": {
-          "mean": 21.98,
-          "std": 9.91
+          "mean": 23.37,
+          "std": 9.49
         },
         "hopping": {
-          "mean": 16.68,
-          "std": 8.14
+          "mean": 19.22,
+          "std": 7.12
         },
         "changing": {
-          "mean": 16.03,
-          "std": 7.67
+          "mean": 16.92,
+          "std": 7.6
         },
         "harsh": {
-          "mean": -4.76,
-          "std": 6.63
+          "mean": -2.04,
+          "std": 5.51
         },
         "operational": {
-          "mean": 0.92,
-          "std": 4.97
+          "mean": 1.4,
+          "std": 5.08
         },
         "crowded": {
-          "mean": 17.27,
-          "std": 9.55
+          "mean": 20.03,
+          "std": 9.39
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 11,
+      "final_rank": 15,
       "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.642,
+      "cohens_d_vs_dwell_dual": 0.497,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -769,59 +997,59 @@
     "Candidate 2: Boosted-Tree Dwell": {
       "category": "Boosted Tree",
       "description": "25-Tree GBDT Ensemble Estimating P(active next step | history)",
-      "mean_reward": 10.99,
-      "std_reward": 14.13,
+      "mean_reward": 12.14,
+      "std_reward": 14.14,
       "reward_95ci": [
-        9.54,
-        12.44
+        10.25,
+        14.02
       ],
-      "reward_ci_str": "+10.99 (95% CI: [+9.54, +12.44])",
-      "mean_hits": 14.2,
+      "reward_ci_str": "+12.14 (95% CI: [+10.25, +14.02])",
+      "mean_hits": 15.5,
       "std_hits": 13.9,
       "hits_95ci": [
-        12.3,
-        16.1
+        13.2,
+        17.8
       ],
-      "interception_rate_pct": 10.95,
-      "mean_switches": 32.2,
-      "std_switches": 6.8,
+      "interception_rate_pct": 11.35,
+      "mean_switches": 33.1,
+      "std_switches": 7.6,
       "switches_95ci": [
-        31.4,
-        33.0
+        32.0,
+        34.2
       ],
-      "latency_mean_ms": 1.2258,
-      "latency_p95_ms": 2.0532,
+      "latency_mean_ms": 0.2459,
+      "latency_p95_ms": 0.3501,
       "scenario_stats": {
         "stationary": {
-          "mean": 25.3,
-          "std": 20.04
+          "mean": 23.24,
+          "std": 19.28
         },
         "hopping": {
-          "mean": 14.73,
-          "std": 7.94
+          "mean": 16.43,
+          "std": 7.5
         },
         "changing": {
-          "mean": 13.81,
-          "std": 7.05
+          "mean": 15.41,
+          "std": 5.82
         },
         "harsh": {
-          "mean": -2.83,
-          "std": 5.34
+          "mean": -2.34,
+          "std": 7.72
         },
         "operational": {
-          "mean": 0.52,
-          "std": 6.76
+          "mean": 1.96,
+          "std": 5.13
         },
         "crowded": {
-          "mean": 14.41,
-          "std": 8.89
+          "mean": 18.13,
+          "std": 12.93
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 12,
+      "final_rank": 16,
       "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.523,
+      "cohens_d_vs_dwell_dual": 0.447,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -830,59 +1058,59 @@
     "Fixed Sequential Sweep": {
       "category": "Sequential Baseline",
       "description": "Deterministic Round-Robin Raster Scan Baseline",
-      "mean_reward": 9.84,
-      "std_reward": 9.96,
+      "mean_reward": 10.14,
+      "std_reward": 9.99,
       "reward_95ci": [
-        8.66,
-        11.02
+        8.57,
+        11.71
       ],
-      "reward_ci_str": "+9.84 (95% CI: [+8.66, +11.02])",
-      "mean_hits": 12.0,
-      "std_hits": 7.5,
+      "reward_ci_str": "+10.14 (95% CI: [+8.57, +11.71])",
+      "mean_hits": 13.2,
+      "std_hits": 6.8,
       "hits_95ci": [
-        10.7,
-        13.2
+        11.9,
+        14.5
       ],
-      "interception_rate_pct": 9.26,
+      "interception_rate_pct": 9.67,
       "mean_switches": 149.0,
       "std_switches": 0.0,
       "switches_95ci": [
         149.0,
         149.0
       ],
-      "latency_mean_ms": 0.0037,
-      "latency_p95_ms": 0.0129,
+      "latency_mean_ms": 0.0009,
+      "latency_p95_ms": 0.0013,
       "scenario_stats": {
         "stationary": {
-          "mean": 16.38,
-          "std": 7.29
+          "mean": 15.29,
+          "std": 6.67
         },
         "hopping": {
-          "mean": 15.43,
-          "std": 5.94
+          "mean": 16.19,
+          "std": 6.17
         },
         "changing": {
-          "mean": 13.55,
-          "std": 5.88
+          "mean": 14.5,
+          "std": 6.56
         },
         "harsh": {
-          "mean": -2.63,
-          "std": 5.67
+          "mean": -3.34,
+          "std": 5.66
         },
         "operational": {
-          "mean": 1.03,
-          "std": 5.49
+          "mean": 2.22,
+          "std": 5.95
         },
         "crowded": {
-          "mean": 15.28,
-          "std": 7.92
+          "mean": 15.96,
+          "std": 7.06
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": true,
-      "final_rank": 13,
+      "final_rank": 17,
       "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.688,
+      "cohens_d_vs_dwell_dual": 0.656,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -891,59 +1119,59 @@
     "Uniform Random Scan": {
       "category": "Random Baseline",
       "description": "Uniform Random Channel Exploration Baseline",
-      "mean_reward": 9.4,
-      "std_reward": 9.86,
+      "mean_reward": 9.63,
+      "std_reward": 10.64,
       "reward_95ci": [
-        8.21,
-        10.59
+        8.19,
+        11.07
       ],
-      "reward_ci_str": "+9.40 (95% CI: [+8.21, +10.59])",
-      "mean_hits": 11.7,
+      "reward_ci_str": "+9.63 (95% CI: [+8.19, +11.07])",
+      "mean_hits": 13.6,
       "std_hits": 7.4,
       "hits_95ci": [
-        10.5,
-        12.8
+        12.2,
+        15.0
       ],
-      "interception_rate_pct": 9.0,
-      "mean_switches": 141.8,
-      "std_switches": 3.4,
+      "interception_rate_pct": 9.96,
+      "mean_switches": 140.9,
+      "std_switches": 2.3,
       "switches_95ci": [
-        141.5,
-        142.2
+        140.6,
+        141.3
       ],
-      "latency_mean_ms": 0.0381,
-      "latency_p95_ms": 0.0637,
+      "latency_mean_ms": 0.0071,
+      "latency_p95_ms": 0.0127,
       "scenario_stats": {
         "stationary": {
-          "mean": 15.29,
-          "std": 6.28
+          "mean": 18.02,
+          "std": 6.72
         },
         "hopping": {
-          "mean": 15.2,
-          "std": 6.3
+          "mean": 15.72,
+          "std": 4.48
         },
         "changing": {
-          "mean": 13.32,
-          "std": 5.9
+          "mean": 13.76,
+          "std": 5.57
         },
         "harsh": {
-          "mean": -2.68,
-          "std": 6.45
+          "mean": -3.54,
+          "std": 6.71
         },
         "operational": {
-          "mean": 0.13,
-          "std": 5.81
+          "mean": -1.09,
+          "std": 7.7
         },
         "crowded": {
-          "mean": 15.13,
-          "std": 6.97
+          "mean": 14.89,
+          "std": 6.49
         }
       },
       "overlaps_with_prev": true,
       "overlaps_with_next": false,
-      "final_rank": 14,
+      "final_rank": 18,
       "p_value_vs_dwell_dual": 0.0,
-      "cohens_d_vs_dwell_dual": 0.669,
+      "cohens_d_vs_dwell_dual": 0.719,
       "significantly_beats_dwell_dual": false,
       "distinguishable_from_dwell_dual": true,
       "tier": 2,
@@ -952,199 +1180,259 @@
   },
   "significance_tests": {
     "SmartScan-Omni V2 (Tuned)": {
-      "delta_mean_reward": 2.8,
-      "t_statistic": 3.298,
-      "p_value_parametric": 0.001093,
-      "wilcoxon_w": 16396.0,
-      "p_value_nonparametric": 4e-05,
-      "cohens_d": 0.19,
-      "median_difference": 3.34,
+      "delta_mean_reward": 3.75,
+      "t_statistic": 2.981,
+      "p_value_parametric": 0.003277,
+      "wilcoxon_w": 5926.0,
+      "p_value_nonparametric": 0.001525,
+      "cohens_d": 0.222,
+      "median_difference": 3.52,
       "iqr_25_75": [
-        -5.44,
-        11.31
+        -6.02,
+        14.69
       ],
       "significance_flag": "p < 0.01 (**)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance (Medium effect)"
     },
     "Robust PCA + PSR": {
-      "delta_mean_reward": 4.71,
-      "t_statistic": 6.201,
-      "p_value_parametric": 0.0,
-      "wilcoxon_w": 13308.0,
-      "p_value_nonparametric": 0.0,
-      "cohens_d": 0.358,
-      "median_difference": 4.27,
+      "delta_mean_reward": 3.53,
+      "t_statistic": 3.427,
+      "p_value_parametric": 0.000757,
+      "wilcoxon_w": 5835.0,
+      "p_value_nonparametric": 0.000968,
+      "cohens_d": 0.255,
+      "median_difference": 3.85,
       "iqr_25_75": [
-        -2.42,
-        12.38
+        -5.93,
+        12.89
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "Candidate 1: LinUCB Bandit": {
-      "delta_mean_reward": 3.34,
-      "t_statistic": 5.095,
-      "p_value_parametric": 1e-06,
-      "wilcoxon_w": 15195.0,
-      "p_value_nonparametric": 1e-06,
-      "cohens_d": 0.294,
-      "median_difference": 2.76,
+      "delta_mean_reward": 2.64,
+      "t_statistic": 3.078,
+      "p_value_parametric": 0.002413,
+      "wilcoxon_w": 6362.0,
+      "p_value_nonparametric": 0.010866,
+      "cohens_d": 0.229,
+      "median_difference": 1.19,
       "iqr_25_75": [
-        -3.89,
-        10.36
+        -4.68,
+        9.44
       ],
-      "significance_flag": "p < 0.001 (***)",
-      "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+      "significance_flag": "p < 0.01 (**)",
+      "defensible_interpretation": "Statistically significant; unlikely from seed variance (Medium effect)"
     },
     "Candidate 3: GRU-D Recurrent": {
-      "delta_mean_reward": 6.01,
-      "t_statistic": 9.062,
-      "p_value_parametric": 0.0,
-      "wilcoxon_w": 10782.0,
-      "p_value_nonparametric": 0.0,
-      "cohens_d": 0.523,
-      "median_difference": 5.11,
+      "delta_mean_reward": 4.57,
+      "t_statistic": 4.876,
+      "p_value_parametric": 2e-06,
+      "wilcoxon_w": 5185.0,
+      "p_value_nonparametric": 2.4e-05,
+      "cohens_d": 0.363,
+      "median_difference": 3.01,
       "iqr_25_75": [
-        -1.99,
-        13.0
+        -4.2,
+        12.85
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "SmartScan V2-NMF": {
-      "delta_mean_reward": 3.39,
-      "t_statistic": 4.607,
-      "p_value_parametric": 6e-06,
-      "wilcoxon_w": 15513.5,
-      "p_value_nonparametric": 3e-06,
-      "cohens_d": 0.266,
-      "median_difference": 3.21,
+      "delta_mean_reward": 3.34,
+      "t_statistic": 3.413,
+      "p_value_parametric": 0.000796,
+      "wilcoxon_w": 5855.0,
+      "p_value_nonparametric": 0.001071,
+      "cohens_d": 0.254,
+      "median_difference": 3.04,
       "iqr_25_75": [
-        -4.82,
-        10.75
+        -4.74,
+        11.1
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "Dual-Policy Uncertainty": {
-      "delta_mean_reward": 1.6,
-      "t_statistic": 2.709,
-      "p_value_parametric": 0.007146,
-      "wilcoxon_w": 19056.0,
-      "p_value_nonparametric": 0.019276,
-      "cohens_d": 0.156,
-      "median_difference": 0.82,
+      "delta_mean_reward": 1.14,
+      "t_statistic": 1.302,
+      "p_value_parametric": 0.194636,
+      "wilcoxon_w": 7524.0,
+      "p_value_nonparametric": 0.37503,
+      "cohens_d": 0.097,
+      "median_difference": 0.66,
       "iqr_25_75": [
-        -5.66,
-        7.46
+        -6.3,
+        7.65
       ],
-      "significance_flag": "p < 0.01 (**)",
-      "defensible_interpretation": "Statistically significant; unlikely from seed variance (Medium effect)"
+      "significance_flag": "n.s. (p >= 0.05)",
+      "defensible_interpretation": "Difference not statistically significant at alpha=0.05"
     },
     "Candidate 2: Boosted-Tree Dwell": {
-      "delta_mean_reward": 7.18,
-      "t_statistic": 9.058,
+      "delta_mean_reward": 6.71,
+      "t_statistic": 6.002,
       "p_value_parametric": 0.0,
-      "wilcoxon_w": 9567.0,
+      "wilcoxon_w": 4394.5,
       "p_value_nonparametric": 0.0,
-      "cohens_d": 0.523,
-      "median_difference": 5.93,
+      "cohens_d": 0.447,
+      "median_difference": 5.46,
       "iqr_25_75": [
-        -1.05,
-        14.83
+        -3.47,
+        14.55
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "Direct NMF": {
-      "delta_mean_reward": 1.91,
-      "t_statistic": 2.038,
-      "p_value_parametric": 0.042389,
-      "wilcoxon_w": 17525.0,
-      "p_value_nonparametric": 0.000784,
-      "cohens_d": 0.118,
-      "median_difference": 2.85,
+      "delta_mean_reward": 0.65,
+      "t_statistic": 0.534,
+      "p_value_parametric": 0.594076,
+      "wilcoxon_w": 7717.0,
+      "p_value_nonparametric": 0.54094,
+      "cohens_d": 0.04,
+      "median_difference": -0.16,
       "iqr_25_75": [
-        -5.8,
-        10.24
+        -8.63,
+        10.52
       ],
-      "significance_flag": "p < 0.05 (*)",
-      "defensible_interpretation": "Statistically significant (p < 0.05)"
+      "significance_flag": "n.s. (p >= 0.05)",
+      "defensible_interpretation": "Difference not statistically significant at alpha=0.05"
     },
     "Static NMF+UCB": {
-      "delta_mean_reward": 1.63,
-      "t_statistic": 2.57,
-      "p_value_parametric": 0.010644,
-      "wilcoxon_w": 19211.0,
-      "p_value_nonparametric": 0.025281,
-      "cohens_d": 0.148,
-      "median_difference": 1.32,
+      "delta_mean_reward": 0.9,
+      "t_statistic": 1.043,
+      "p_value_parametric": 0.298543,
+      "wilcoxon_w": 7499.0,
+      "p_value_nonparametric": 0.35611,
+      "cohens_d": 0.078,
+      "median_difference": 1.08,
       "iqr_25_75": [
-        -4.92,
-        7.88
+        -6.88,
+        8.84
       ],
-      "significance_flag": "p < 0.05 (*)",
-      "defensible_interpretation": "Statistically significant (p < 0.05)"
+      "significance_flag": "n.s. (p >= 0.05)",
+      "defensible_interpretation": "Difference not statistically significant at alpha=0.05"
     },
     "Whittle Index RMAB": {
-      "delta_mean_reward": 4.65,
-      "t_statistic": 7.206,
-      "p_value_parametric": 0.0,
-      "wilcoxon_w": 12829.0,
-      "p_value_nonparametric": 0.0,
-      "cohens_d": 0.416,
-      "median_difference": 3.25,
+      "delta_mean_reward": 4.18,
+      "t_statistic": 4.819,
+      "p_value_parametric": 3e-06,
+      "wilcoxon_w": 4984.0,
+      "p_value_nonparametric": 6e-06,
+      "cohens_d": 0.359,
+      "median_difference": 3.16,
       "iqr_25_75": [
-        -2.5,
-        10.63
+        -2.86,
+        11.51
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "Observable Plain UCB": {
-      "delta_mean_reward": 6.81,
-      "t_statistic": 11.122,
+      "delta_mean_reward": 5.7,
+      "t_statistic": 6.672,
       "p_value_parametric": 0.0,
-      "wilcoxon_w": 8121.0,
+      "wilcoxon_w": 3986.0,
       "p_value_nonparametric": 0.0,
-      "cohens_d": 0.642,
-      "median_difference": 5.7,
+      "cohens_d": 0.497,
+      "median_difference": 4.98,
       "iqr_25_75": [
-        -0.42,
-        13.18
+        -2.32,
+        12.29
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "Uniform Random Scan": {
-      "delta_mean_reward": 8.77,
-      "t_statistic": 11.587,
+      "delta_mean_reward": 9.22,
+      "t_statistic": 9.647,
       "p_value_parametric": 0.0,
-      "wilcoxon_w": 7488.0,
+      "wilcoxon_w": 2618.0,
       "p_value_nonparametric": 0.0,
-      "cohens_d": 0.669,
-      "median_difference": 7.46,
+      "cohens_d": 0.719,
+      "median_difference": 8.38,
       "iqr_25_75": [
-        -0.62,
-        16.05
+        -1.1,
+        18.24
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
     },
     "Fixed Sequential Sweep": {
-      "delta_mean_reward": 8.33,
-      "t_statistic": 11.922,
+      "delta_mean_reward": 8.71,
+      "t_statistic": 8.799,
       "p_value_parametric": 0.0,
-      "wilcoxon_w": 7257.0,
+      "wilcoxon_w": 2799.0,
       "p_value_nonparametric": 0.0,
-      "cohens_d": 0.688,
-      "median_difference": 7.25,
+      "cohens_d": 0.656,
+      "median_difference": 6.97,
       "iqr_25_75": [
-        0.23,
-        15.44
+        -1.21,
+        16.64
       ],
       "significance_flag": "p < 0.001 (***)",
       "defensible_interpretation": "Statistically significant; unlikely from seed variance"
+    },
+    "Dwell-Dual + Expectimax": {
+      "delta_mean_reward": 2.22,
+      "t_statistic": 2.486,
+      "p_value_parametric": 0.01384,
+      "wilcoxon_w": 6703.0,
+      "p_value_nonparametric": 0.03941,
+      "cohens_d": 0.185,
+      "median_difference": 1.3,
+      "iqr_25_75": [
+        -5.95,
+        9.11
+      ],
+      "significance_flag": "p < 0.05 (*)",
+      "defensible_interpretation": "Statistically significant (p < 0.05)"
+    },
+    "Dwell-Dual + Thompson": {
+      "delta_mean_reward": 0.07,
+      "t_statistic": 0.077,
+      "p_value_parametric": 0.938984,
+      "wilcoxon_w": 7933.0,
+      "p_value_nonparametric": 0.762012,
+      "cohens_d": 0.006,
+      "median_difference": 0.08,
+      "iqr_25_75": [
+        -6.69,
+        8.07
+      ],
+      "significance_flag": "n.s. (p >= 0.05)",
+      "defensible_interpretation": "Difference not statistically significant at alpha=0.05"
+    },
+    "Dwell-Dual + Whittle RMAB": {
+      "delta_mean_reward": 0.37,
+      "t_statistic": 0.426,
+      "p_value_parametric": 0.670665,
+      "wilcoxon_w": 7841.0,
+      "p_value_nonparametric": 0.664099,
+      "cohens_d": 0.032,
+      "median_difference": -0.0,
+      "iqr_25_75": [
+        -6.77,
+        7.65
+      ],
+      "significance_flag": "n.s. (p >= 0.05)",
+      "defensible_interpretation": "Difference not statistically significant at alpha=0.05"
+    },
+    "Hysteresis Meta-Controller": {
+      "delta_mean_reward": 2.4,
+      "t_statistic": 2.513,
+      "p_value_parametric": 0.012853,
+      "wilcoxon_w": 6392.0,
+      "p_value_nonparametric": 0.012275,
+      "cohens_d": 0.187,
+      "median_difference": 2.25,
+      "iqr_25_75": [
+        -5.41,
+        10.1
+      ],
+      "significance_flag": "p < 0.05 (*)",
+      "defensible_interpretation": "Statistically significant (p < 0.05)"
     }
   }
 }
