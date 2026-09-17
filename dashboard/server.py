@@ -1,6 +1,6 @@
 """SmartScan Production Laboratory Server.
 
-Exclusively runs the verified #1 Grand Champion: Dwell-Dual Policy Scheduler
+Runs the Turing-calibrated Dwell-Dual research baseline
 (SmartScanProductionScheduler) in a Gymnasium environment.
 """
 
@@ -25,7 +25,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from simulator.environment import SmartScanEnv
 from scheduler.smartscan_production import SmartScanProductionScheduler
 
-MODEL_NAME = "Dwell-Dual Policy (Grand Champion)"
+MODEL_NAME = "Turing-Calibrated Dwell-Dual (Research Baseline)"
 
 SCENARIOS = {
     'stationary': '1. Steady Emitters (Radar)',
@@ -83,8 +83,7 @@ class SimulationManager:
             self.active_bands = []
             self.jammer_active = False
             self.jammer_band = 7
-            self.last_sim = 0.85
-            self.last_auth = True
+            self.perception_mode = 'CNN gate disabled; raw scheduler observation'
 
             return self.snapshot()
 
@@ -137,9 +136,8 @@ class SimulationManager:
                 'scenarios': [{'key': k, 'name': v} for k, v in SCENARIOS.items()],
                 'jammer_active': getattr(self, 'jammer_active', False),
                 'jammer_band': getattr(self, 'jammer_band', 7),
-                'last_sim': round(getattr(self, 'last_sim', 0.85), 3),
-                'last_auth': getattr(self, 'last_auth', True),
-                'auth_threshold': 0.7415,
+                'perception_mode': self.perception_mode,
+                'cnn_signal_gate': False,
                 'problem_statement': {
                     'id': '26055',
                     'title': 'Smart Scan Strategy for Electronic Warfare',
@@ -170,11 +168,8 @@ class SimulationManager:
             if getattr(self, 'jammer_active', False) and self.env is not None and hasattr(self.env, 'world') and self.env.world is not None:
                 self.env.world.interference[self.step_count:, self.jammer_band] = True
 
-            rng = getattr(self.scheduler, 'rng', None)
-            if rng is None:
-                rng = np.random.default_rng(self.seed + self.step_count)
-
-            # Direct cognitive decision from production champion scheduler
+            # The scheduler chooses using only its maintained observable state.
+            # Ground truth is used below only for scoring and visualization.
             action = int(self.scheduler.select_band())
 
             # Real measured decision latency
@@ -188,46 +183,19 @@ class SimulationManager:
             detected = bool(obs.get('detected', False))
             is_jammer_hit = getattr(self, 'jammer_active', False) and (action == self.jammer_band)
 
-            if is_jammer_hit:
-                # DRFM Spoofed pulse intercepted - ECCM perception layer rejection
-                sim_val = round(float(rng.uniform(0.35, 0.49)), 3)
-                self.last_sim = sim_val
-                self.last_auth = False
-                outcome = 'decoy_rejected'
-                reward = -1.0
-                self.mode = 'DECOY REJECTED'
-                self.reason = f"Channel {action:02d}: DRFM spoofing pulse detected (cos_sim={sim_val:.3f} < 0.742). Dwell bonus revoked; immediate evasive hop."
-                # Penalize scheduler on spoofed band to ensure rapid evasion
-                modified_obs = dict(obs)
-                modified_obs['detected'] = False
-                modified_obs['quality'] = 0.0
-                t0_up = perf_counter()
-                self.scheduler.update(action, -1.0, modified_obs)
-                update_ms = (perf_counter() - t0_up) * 1000.0
-                self.scheduler.consecutive_misses = 2
-            else:
-                t0_up = perf_counter()
-                self.scheduler.update(action, reward, obs)
-                update_ms = (perf_counter() - t0_up) * 1000.0
+            t0_up = perf_counter()
+            self.scheduler.update(action, reward, obs)
+            update_ms = (perf_counter() - t0_up) * 1000.0
 
-                if signal_present and detected:
-                    sim_val = round(float(rng.uniform(0.81, 0.94)), 3)
-                    self.last_sim = sim_val
-                    self.last_auth = True
-                    self.signals_found += 1
-                    self.total_signals += 1
-                    outcome = 'hit'
-                elif len(active_bands) > 0:
-                    sim_val = round(float(rng.uniform(0.18, 0.36)), 3)
-                    self.last_sim = sim_val
-                    self.last_auth = False
-                    self.total_signals += 1
-                    outcome = 'miss' if signal_present else 'empty'
-                else:
-                    sim_val = round(float(rng.uniform(0.18, 0.36)), 3)
-                    self.last_sim = sim_val
-                    self.last_auth = False
-                    outcome = 'empty'
+            if signal_present and detected:
+                self.signals_found += 1
+                self.total_signals += 1
+                outcome = 'hit'
+            elif len(active_bands) > 0:
+                self.total_signals += 1
+                outcome = 'miss' if signal_present else 'empty'
+            else:
+                outcome = 'empty'
 
             self.step_count += 1
             self.total_score += float(reward)
@@ -241,24 +209,25 @@ class SimulationManager:
             self.last_outcome = outcome
             self.active_bands = active_bands
 
-            # Interpret tactical explanation if not already set by decoy rejection
-            if not is_jammer_hit:
-                gov_policy = getattr(self.scheduler, 'last_governing_policy', 'exploit')
-                if gov_policy == 'dwell_exploit':
-                    self.mode = 'DWELL LOCK'
-                    self.reason = f"Channel {action:02d} locked: signal intercepted (+1.0, cos_sim={self.last_sim:.2f}). Holding position eliminates synthesizer retuning penalty."
-                elif gov_policy == 'coverage_interrupt_dwell':
-                    self.mode = 'FADING TOLERANCE'
-                    self.reason = f"Channel {action:02d}: stale-band visit deferred to protect active signal dwell. 1-step debounce active."
-                elif gov_policy == 'smart_forced_coverage':
-                    self.mode = 'SMART COVERAGE'
-                    self.reason = f"Channel {action:02d}: stale band serviced with prioritized observable urgency (uncertainty + age + depth)."
-                elif gov_policy == 'explore':
-                    self.mode = 'COGNITIVE SCOUT'
-                    self.reason = f"Channel {action:02d}: exploratory probe into high-uncertainty spectrum to intercept new or agile hopping emitters."
-                else:
-                    self.mode = 'NMF EXPLOIT'
-                    self.reason = f"Channel {action:02d}: scheduled via NMF spectral co-activation & UCB empirical value estimate."
+            gov_policy = getattr(self.scheduler, 'last_governing_policy', 'exploit')
+            if is_jammer_hit:
+                self.mode = 'JAMMER INTERFERENCE'
+                self.reason = f"Channel {action:02d}: configured interference is present. The measured observation was passed to the scheduler; no CNN authentication claim is made."
+            elif gov_policy == 'coverage_interrupt_dwell':
+                self.mode = 'FADING TOLERANCE'
+                self.reason = f"Channel {action:02d}: stale-band visit deferred to protect active signal dwell. 1-step debounce active."
+            elif gov_policy == 'smart_forced_coverage':
+                self.mode = 'SMART COVERAGE'
+                self.reason = f"Channel {action:02d}: stale band serviced with prioritized observable urgency."
+            elif gov_policy == 'explore':
+                self.mode = 'COGNITIVE SCOUT'
+                self.reason = f"Channel {action:02d}: exploratory probe into high-uncertainty spectrum."
+            elif detected:
+                self.mode = 'DWELL PREFERENCE'
+                self.reason = f"Channel {action:02d}: observable signal detected; dwell preference is active."
+            else:
+                self.mode = 'NMF/UCB SCAN'
+                self.reason = f"Channel {action:02d}: selected by live NMF/UCB scoring from observable history."
 
             # Update powers array
             pow_val = float(np.asarray(obs.get('signal_power', [0.10])).reshape(-1)[0])

@@ -1,0 +1,362 @@
+[
+  {
+    "name": "higher_dwell",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 2.4,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 106.41705263157878,
+    "development_total_hits": 883,
+    "heldout_mean_reward": 143.61989473684213,
+    "heldout_total_hits": 1310,
+    "heldout_mean_switches": 176.0
+  },
+  {
+    "name": "more_nmf",
+    "config": {
+      "nmf_scale": 1.8,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 106.06863157894729,
+    "development_total_hits": 876,
+    "heldout_mean_reward": 135.2296842105264,
+    "heldout_total_hits": 1222,
+    "heldout_mean_switches": 185.6
+  },
+  {
+    "name": "stable_emitter",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 45,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 2.2,
+      "explore_budget_prob": 0.04,
+      "uncertainty_trigger_threshold": 0.45,
+      "fading_grace_steps": 2
+    },
+    "development_mean_reward": 104.62073684210513,
+    "development_total_hits": 866,
+    "heldout_mean_reward": 139.01463157894744,
+    "heldout_total_hits": 1257,
+    "heldout_mean_switches": 177.8
+  },
+  {
+    "name": "fast_nmf",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 1,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 103.7327368421051,
+    "development_total_hits": 853,
+    "heldout_mean_reward": 140.32568421052636,
+    "heldout_total_hits": 1274,
+    "heldout_mean_switches": 180.7
+  },
+  {
+    "name": "long_memory",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 60,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 101.4702105263157,
+    "development_total_hits": 833,
+    "heldout_mean_reward": 141.31031578947375,
+    "heldout_total_hits": 1282,
+    "heldout_mean_switches": 179.1
+  },
+  {
+    "name": "higher_switch_penalty",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.1,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 99.80989473684198,
+    "development_total_hits": 810,
+    "heldout_mean_reward": 140.1417894736843,
+    "heldout_total_hits": 1271,
+    "heldout_mean_switches": 180.6
+  },
+  {
+    "name": "more_explore",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.2,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 98.94463157894725,
+    "development_total_hits": 796,
+    "heldout_mean_reward": 140.2298947368422,
+    "heldout_total_hits": 1272,
+    "heldout_mean_switches": 181.1
+  },
+  {
+    "name": "short_memory",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 12,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 97.9932631578946,
+    "development_total_hits": 795,
+    "heldout_mean_reward": 136.6292631578948,
+    "heldout_total_hits": 1229,
+    "heldout_mean_switches": 186.0
+  },
+  {
+    "name": "two_step_grace",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 2
+    },
+    "development_mean_reward": 97.40252631578936,
+    "development_total_hits": 785,
+    "heldout_mean_reward": 139.04747368421062,
+    "heldout_total_hits": 1255,
+    "heldout_mean_switches": 179.2
+  },
+  {
+    "name": "baseline",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 97.37673684210513,
+    "development_total_hits": 781,
+    "heldout_mean_reward": 141.0148421052632,
+    "heldout_total_hits": 1280,
+    "heldout_mean_switches": 180.9
+  },
+  {
+    "name": "lower_explore_threshold",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.25,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 97.37673684210513,
+    "development_total_hits": 781,
+    "heldout_mean_reward": 141.0148421052632,
+    "heldout_total_hits": 1280,
+    "heldout_mean_switches": 180.9
+  },
+  {
+    "name": "less_explore",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.03,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 97.02326315789462,
+    "development_total_hits": 776,
+    "heldout_mean_reward": 138.81652631578953,
+    "heldout_total_hits": 1256,
+    "heldout_mean_switches": 183.7
+  },
+  {
+    "name": "higher_explore_threshold",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.5,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 96.0057894736841,
+    "development_total_hits": 768,
+    "heldout_mean_reward": 138.81842105263166,
+    "heldout_total_hits": 1257,
+    "heldout_mean_switches": 182.7
+  },
+  {
+    "name": "less_nmf",
+    "config": {
+      "nmf_scale": 0.6,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 95.04936842105255,
+    "development_total_hits": 761,
+    "heldout_mean_reward": 141.16831578947375,
+    "heldout_total_hits": 1282,
+    "heldout_mean_switches": 179.8
+  },
+  {
+    "name": "lower_switch_penalty",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.01,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 94.11463157894725,
+    "development_total_hits": 755,
+    "heldout_mean_reward": 139.71378947368427,
+    "heldout_total_hits": 1273,
+    "heldout_mean_switches": 180.7
+  },
+  {
+    "name": "lower_dwell",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 0.6,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 92.98957894736836,
+    "development_total_hits": 740,
+    "heldout_mean_reward": 132.41915789473688,
+    "heldout_total_hits": 1188,
+    "heldout_mean_switches": 198.7
+  },
+  {
+    "name": "slow_nmf",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 5,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 92.86968421052623,
+    "development_total_hits": 738,
+    "heldout_mean_reward": 140.715052631579,
+    "heldout_total_hits": 1274,
+    "heldout_mean_switches": 181.0
+  },
+  {
+    "name": "balanced_fast",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 20,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.03,
+      "dwell_inertia": 0.9,
+      "explore_budget_prob": 0.16,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 1
+    },
+    "development_mean_reward": 92.86378947368416,
+    "development_total_hits": 743,
+    "heldout_mean_reward": 136.97873684210532,
+    "heldout_total_hits": 1234,
+    "heldout_mean_switches": 188.2
+  },
+  {
+    "name": "agile_hopper",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 12,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 0.55,
+      "explore_budget_prob": 0.24,
+      "uncertainty_trigger_threshold": 0.25,
+      "fading_grace_steps": 0
+    },
+    "development_mean_reward": 87.98621052631574,
+    "development_total_hits": 686,
+    "heldout_mean_reward": 129.2727368421053,
+    "heldout_total_hits": 1165,
+    "heldout_mean_switches": 202.3
+  },
+  {
+    "name": "no_fading_grace",
+    "config": {
+      "nmf_scale": 1.2,
+      "nmf_window": 30,
+      "nmf_recompute_every": 2,
+      "switch_penalty": 0.04,
+      "dwell_inertia": 1.5,
+      "explore_budget_prob": 0.08,
+      "uncertainty_trigger_threshold": 0.35,
+      "fading_grace_steps": 0
+    },
+    "development_mean_reward": 84.43905263157889,
+    "development_total_hits": 647,
+    "heldout_mean_reward": 138.88105263157902,
+    "heldout_total_hits": 1256,
+    "heldout_mean_switches": 186.5
+  }
+]

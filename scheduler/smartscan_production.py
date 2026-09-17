@@ -35,7 +35,7 @@ class SmartScanProductionScheduler(WorldModelUCBScheduler):
         nmf_window: int = 30,
         nmf_recompute_every: int = 2,
         switch_penalty: float = 0.08,
-        dwell_inertia: float = 1.30,
+        dwell_inertia: float = 2.40,
         explore_budget_prob: float = 0.12,
         uncertainty_trigger_threshold: float = 0.35,
         fading_grace_steps: int = 1,

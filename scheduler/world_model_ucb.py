@@ -41,6 +41,7 @@ class WorldModelUCBScheduler(BaseScheduler):
         exploration_scale: float = 0.75,
         world_model_scale: float = 0.25,
         staying_inertia: float = 0.12,
+        require_known_identity: bool = False,
     ):
         if num_bands != NUM_BANDS:
             raise ValueError(f"World-Model UCB requires exactly {NUM_BANDS} bands")
@@ -54,6 +55,8 @@ class WorldModelUCBScheduler(BaseScheduler):
         self.exploration_scale = float(exploration_scale)
         self.world_model_scale = float(world_model_scale)
         self.staying_inertia = float(staying_inertia)
+        self.require_known_identity = bool(require_known_identity)
+        self.last_observation_authenticated = False
         if not 0.0 < self.decay <= 1.0:
             raise ValueError("decay must be in (0, 1]")
         if min(self.value_learning_rate, self.exploration_scale, self.world_model_scale, self.staying_inertia) < 0:
@@ -138,7 +141,10 @@ class WorldModelUCBScheduler(BaseScheduler):
         index = int(band)
 
         is_known = bool(res.get("known_identity", True)) if isinstance(res, dict) else True
-        if detected and is_known:
+        self.last_observation_authenticated = bool(
+            detected and (is_known or not self.require_known_identity)
+        )
+        if self.last_observation_authenticated:
             # Verified Authentic Radar: award detection reward bonus
             observable_value = float(np.clip(0.10 + 0.90 * quality, 0.0, 1.0))
         else:

@@ -22,25 +22,25 @@ def nmf_factorize(
     Approximates V ~ W @ H where W >= 0, H >= 0.
     """
     n_features, n_samples = v.shape
+    v = np.nan_to_num(np.asarray(v, dtype=np.float32), nan=eps, posinf=1.0, neginf=eps)
+    v = np.maximum(v, eps)
     rng = np.random.default_rng(101)
 
     # Initialize non-negative matrices W and H
-    avg = np.sqrt(np.mean(v) / n_components)
+    avg = float(np.sqrt(max(float(np.mean(v)), eps) / n_components))
     w = np.abs(rng.normal(avg, avg * 0.2, (n_features, n_components))).astype(np.float32)
     h = np.abs(rng.normal(avg, avg * 0.2, (n_components, n_samples))).astype(np.float32)
-
-    v = np.maximum(v, eps)
 
     for _ in range(max_iter):
         # Update H
         wt = w.T
-        h *= (wt @ v) / (wt @ w @ h + eps)
-        h = np.maximum(h, eps)
+        h *= np.nan_to_num((wt @ v) / (wt @ w @ h + eps), nan=1.0, posinf=1.0, neginf=eps)
+        h = np.clip(h, eps, 1e6)
 
         # Update W
         ht = h.T
-        w *= (v @ ht) / (w @ h @ ht + eps)
-        w = np.maximum(w, eps)
+        w *= np.nan_to_num((v @ ht) / (w @ h @ ht + eps), nan=1.0, posinf=1.0, neginf=eps)
+        w = np.clip(w, eps, 1e6)
 
     # Normalize columns of W
     col_norms = np.linalg.norm(w, axis=0, keepdims=True)

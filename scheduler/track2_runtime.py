@@ -265,14 +265,17 @@ class Track2Runtime:
             self.bundle.get("candidate_match_threshold", 0.75)
         )
         self.smoothing_alpha = float(self.bundle.get("smoothing_alpha", 0.70))
-        self.anomaly_thresholds = self.bundle.get(
-            "anomaly_thresholds",
-            {
-                "identity_novelty": 1.0,
-                "behaviour_change": 1.0,
-                "prediction_uncertainty": 1.0,
-            },
-        )
+        default_anomaly_thresholds = {
+            "identity_novelty": 1.0,
+            "behaviour_change": 1.0,
+            "prediction_uncertainty": 1.0,
+            "identity_drop": 0.2,
+            "unexpected_band": 0.75,
+            "timing_jitter": 0.25,
+            "high_novelty": 0.6,
+        }
+        self.anomaly_thresholds = default_anomaly_thresholds
+        self.anomaly_thresholds.update(self.bundle.get("anomaly_thresholds", {}))
 
     def _new_manager(self) -> TrackManager:
         return TrackManager(

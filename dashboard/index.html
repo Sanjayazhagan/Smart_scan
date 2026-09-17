@@ -58,7 +58,7 @@
         DRDO SIH PS-26055
       </span>
       <span class="text-xs text-[#8c532b] border-l-2 border-[#854d0e] pl-3 hidden sm:inline font-bold">
-        Backend: <strong class="text-[#15803d]">Dwell-Dual Policy (Production Champion)</strong>
+        Backend: <strong class="text-[#15803d]">Turing-Calibrated Dwell-Dual (Research Baseline)</strong>
       </span>
       <span id="backendBadge" class="text-[10px] font-mono font-black px-2 py-0.5 rounded border-2 border-[#15803d] bg-[#dcfce7] text-[#14532d]">
         ● DWELL-DUAL ENGINE
@@ -213,8 +213,8 @@
         </span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <span id="lblEccm" class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#dcfce7] text-[#14532d] border-2 border-[#15803d]" title="Perception-layer 1D-CNN prototype authentication cosine similarity vs tau=0.7415">
-          ECCM: AUTH (0.88)
+        <span id="lblEccm" class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309]" title="The live dashboard uses the production scheduler with CNN signal gating disabled">
+          PERCEPTION: CNN GATE OFF
         </span>
         <span id="lblMode" class="text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309]">
           DWELL LOCK
@@ -553,20 +553,13 @@
         }
       }
 
-      // Update ECCM Perception Badge
-      if (d.last_sim !== undefined) {
-        const simVal = Number(d.last_sim).toFixed(2);
-        if (d.last_auth) {
-          lblEccm.innerText = `ECCM: AUTH (${simVal})`;
-          lblEccm.className = 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#dcfce7] text-[#14532d] border-2 border-[#15803d]';
-        } else if (d.mode === 'DECOY REJECTED' || (jammerActive && d.current_band === JAMMER_BAND)) {
-          lblEccm.innerText = `ECCM: REJECT (${simVal})`;
-          lblEccm.className = 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fee2e2] text-[#991b1b] border-2 border-[#dc2626] animate-pulse';
-        } else {
-          lblEccm.innerText = `ECCM: IDLE (${simVal})`;
-          lblEccm.className = 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309]';
-        }
-      }
+      // Report the actual perception configuration. The dashboard does not
+      // fabricate CNN similarity or authentication when the gate is disabled.
+      const gateEnabled = Boolean(d.cnn_signal_gate);
+      lblEccm.innerText = gateEnabled ? 'PERCEPTION: CNN GATE ON' : 'PERCEPTION: CNN GATE OFF';
+      lblEccm.className = gateEnabled
+        ? 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#dcfce7] text-[#14532d] border-2 border-[#15803d]'
+        : 'text-[10px] font-mono font-black px-2 py-0.5 rounded bg-[#fef3c7] text-[#92400e] border-2 border-[#b45309]';
 
       // Push to waterfall history ONLY during active scan steps (keeps reset waterfall cleanly empty)
       if (d.step > 0) {
@@ -1056,16 +1049,16 @@
         </p>
       </div>
 
-      <!-- Core Architecture: Dwell-Dual Production Champion -->
+      <!-- Core Architecture: Turing-Calibrated Dwell-Dual Research Baseline -->
       <div class="flex flex-col gap-2 text-xs bg-[#f5eedf] p-3 rounded-lg border border-[#854d0e]">
         <h3 class="font-black text-[#78350f] uppercase tracking-wider text-[11px]">
-          2. Production Champion Architecture: Interruptible Dual-Dwell + Smart Stale Ordering
+          2. Research Baseline Architecture: Interruptible Dwell + Smart Stale Ordering
         </h3>
         <ul class="list-disc list-inside space-y-1 text-[#44403c]">
-          <li><strong>Interruptible Dwell Lock:</strong> Locks antenna position onto intercepted emitter pulses, completely eliminating synthesizer retuning latency. Fading grace debounce prevents false dropouts.</li>
+          <li><strong>Interruptible Dwell Preference:</strong> Favors staying with a detected signal while allowing the scheduler to continue comparing observable band scores. Fading grace debounce reduces premature dropouts.</li>
           <li><strong>Smart Stale Coverage:</strong> Ranks unvisited channels using an observable multi-factor urgency metric (<code class="text-[#78350f] font-bold">0.45·Uncertainty + 0.25·Age + 0.20·StaleDepth + 0.10·PriorValue - RetuneCost</code>). Active dwells are protected and never interrupted prematurely.</li>
           <li><strong>NMF Spectral Co-Activation:</strong> Online Non-negative Matrix Factorization discovers correlated multi-band hopping emitters without supervision.</li>
-          <li><strong>Perception-Layer ECCM:</strong> 1D-CNN temporal feature extractor rejects DRFM deceptive spoofing pulses via cosine similarity threshold (<code class="text-[#78350f] font-bold">&tau; = 0.7415</code>), achieving 99.2% jammer immunity.</li>
+          <li><strong>Perception status:</strong> The optional CNN signal gate is disabled in this dashboard. No CNN similarity or authentication result is fabricated here.</li>
         </ul>
       </div>
 
@@ -1088,38 +1081,38 @@
               <tr>
                 <td class="p-2 font-bold text-[#78350f]">Interception Probability</td>
                 <td class="p-2 text-[#78716c]">5.8% &ndash; 14.2%</td>
-                <td class="p-2 font-black text-[#15803d]">23.0% (Peak ~28%)</td>
-                <td class="p-2 font-bold text-[#15803d]">+62% to +296% Intercept Gain</td>
+                <td class="p-2 font-black text-[#15803d]">18.0% (main simulator)</td>
+                <td class="p-2 font-bold text-[#15803d]">Benchmark result, not field proof</td>
               </tr>
               <tr class="bg-[#faf6ed]">
                 <td class="p-2 font-bold text-[#78350f]">Cumulative Reward</td>
                 <td class="p-2 text-[#78716c]">-42.8 to +9.70</td>
-                <td class="p-2 font-black text-[#15803d]">+19.34 [17.22, 21.47]</td>
-                <td class="p-2 font-bold text-[#15803d]">100% of 17 baselines sub-optimal (p &lt; 0.05)</td>
+                <td class="p-2 font-black text-[#15803d]">+18.17 [+16.60, +19.74]</td>
+                <td class="p-2 font-bold text-[#15803d]">50-seed controlled benchmark</td>
               </tr>
               <tr>
                 <td class="p-2 font-bold text-[#78350f]">Decision Latency</td>
                 <td class="p-2 text-[#78716c]">0.45 &ndash; 28.5 ms</td>
-                <td class="p-2 font-black text-[#1d4ed8]">0.08 ms (Pure NumPy)</td>
-                <td class="p-2 font-bold text-[#1d4ed8]">12x faster than 1.0 ms avionics deadline</td>
+                <td class="p-2 font-black text-[#1d4ed8]">0.371 ms mean scheduler</td>
+                <td class="p-2 font-bold text-[#1d4ed8]">CNN pipeline tested separately</td>
               </tr>
               <tr class="bg-[#faf6ed]">
                 <td class="p-2 font-bold text-[#78350f]">Synthesizer Switches</td>
                 <td class="p-2 text-[#78716c]">135 &ndash; 150 / ep</td>
-                <td class="p-2 font-black text-[#92400e]">70.9 switches / ep</td>
-                <td class="p-2 font-bold text-[#92400e]">-38% synthesizer retuning stress</td>
+                <td class="p-2 font-black text-[#92400e]">80.2 / episode</td>
+                <td class="p-2 font-bold text-[#92400e]">Controlled benchmark measure</td>
               </tr>
               <tr>
                 <td class="p-2 font-bold text-[#78350f]">DRFM Decoy Rejection</td>
                 <td class="p-2 text-[#b91c1c]">0% (Deceived by Jammer)</td>
-                <td class="p-2 font-black text-[#15803d]">99.2% Rejection</td>
-                <td class="p-2 font-bold text-[#15803d]">Zero false dwell lock on deceptive decoys</td>
+                <td class="p-2 font-black text-[#15803d]">15 / 15 synthetic variants</td>
+                <td class="p-2 font-bold text-[#15803d]">Not proof against real jammers</td>
               </tr>
               <tr class="bg-[#faf6ed]">
                 <td class="p-2 font-bold text-[#78350f]">Prior Intelligence Requirement</td>
                 <td class="p-2 text-[#b91c1c]">Mandatory Pre-mission Map</td>
-                <td class="p-2 font-black text-[#15803d]">None (Zero Prior)</td>
-                <td class="p-2 font-bold text-[#15803d]">100% compliant with DRDO PS-26055</td>
+                <td class="p-2 font-black text-[#15803d]">No hidden simulator truth</td>
+                <td class="p-2 font-bold text-[#15803d]">Research prototype only</td>
               </tr>
             </tbody>
           </table>
