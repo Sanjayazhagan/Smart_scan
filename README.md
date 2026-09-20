@@ -48,19 +48,19 @@ Incoming PDW Stream
 
 ---
 
-## 📊 Performance Figures of Merit
+## 📊 Standalone Demo Reference
 
-| Figure of Merit (FoM) | Open-Loop / Baselines | SmartScan Champion | Improvement |
+| Figure of Merit | Model-only demo reference |
 |---|---|---|---|
-| **Interception Probability** | 5.8% – 14.2% | **23.0%** (Peak ~28%) | **+62% to +296%** intercept gain |
-| **Cumulative Reward** | -42.8 to +9.70 | **+19.34 [17.22, 21.47]** | **100% of 17 baselines sub-optimal ($p < 0.05$)** |
-| **Control Latency** | 0.45 – 28.5 ms | **0.08 ms – 0.14 ms** | **12x faster** than 1.0 ms avionics deadline |
-| **Synthesizer Switches** | 135 – 150 / ep | **70.9 switches / ep** | **-38%** retuning overhead |
-| **Pre-Mission Prior** | Mandatory | **None (Zero Prior)** | **100% autonomous compliance** |
+| **Interception rate** | **17.3%** in the 150-step seed-42 demo |
+| **Mean decision latency** | **0.195 ms** in the verified run |
+| **P95 decision latency** | **0.229 ms** in the verified run |
+| **Synthesizer switches** | **76** in the verified run |
+| **Pre-mission intelligence** | **None**; observation-only feedback |
 
 ---
 
-## 🚀 Quickstart
+## 🚀 Judge Quickstart
 
 ### 1. Installation
 
@@ -73,17 +73,33 @@ cd Smart_scan
 pip install -r requirements.txt
 ```
 
-### 2. Run Interactive Demo
+### 2. Run the Fast Smart Scan Benchmark
 
 ```bash
-python demo.py
+python benchmark.py
 ```
+
+This is the recommended judge-facing command. It compares all six model-only
+algorithms on the same deterministic 150-step agile-emitter scenario and prints
+interception, reward, switching, and latency in a few seconds. It requires no
+Hugging Face login, external dataset, GPU, checkpoint, dashboard, or
+research-branch files. This short demonstration is a comparison smoke test;
+the complete 250-mission HF evaluation is the stronger aggregate result.
+
+`demo.py` remains available as the underlying demonstration entry point.
 
 ### 3. Run Verification Tests
 
 ```bash
 python -m pytest tests/test_model.py -v
 ```
+
+## Optional Research Validation
+
+The full Hugging Face Turing `stare/test_stare` benchmark is intentionally not
+part of the judge quickstart because it downloads and evaluates 250 gated HDF5
+missions and takes substantially longer. It is useful for technical evidence,
+but the submission path is the fast standalone `benchmark.py` run above.
 
 ---
 

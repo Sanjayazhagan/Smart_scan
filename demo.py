@@ -106,7 +106,7 @@ def run_demo():
     print(f"  * Total Steps Evaluated:        {episode_steps}")
     print(f"  * Signals Intercepted (Hits):   {total_hits}")
     print(f"  * Total Signals Emitted:        {total_signals_emitted}")
-    print(f"  * Signal Interception Rate:     {intercept_rate:.1f}% (vs ~5.8% for random sweep, >3.9x gain)")
+    print(f"  * Signal Interception Rate:     {intercept_rate:.1f}% (standalone deterministic demo)")
     print(f"  * Synthesizer Switches:         {total_switches} (low retuning overhead via dwell lock)")
     print(f"  * Mean Decision Latency:        {avg_latency_ms:.3f} ms ({avg_latency_ms * 1000:.1f} us)")
     print(f"  * 95th Percentile Latency:      {p95_latency_ms:.3f} ms (< 1.0 ms real-time avionics deadline)")
