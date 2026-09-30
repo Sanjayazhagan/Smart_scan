@@ -1,2 +1,5 @@
-﻿numpy>=1.26,<3
+numpy>=1.26,<3
 pytest>=8,<10
+torch>=2.2,<3
+huggingface_hub>=0.24,<1
+h5py>=3.10,<4
